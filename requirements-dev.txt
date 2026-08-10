@@ -1,0 +1,5 @@
+# Install the package with development extras:
+#   pip install -e ".[dev]"
+#
+# This file mirrors the [project.optional-dependencies]dev set for convenience.
+-e ".[dev]"
