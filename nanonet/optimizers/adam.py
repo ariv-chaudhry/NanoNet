@@ -28,7 +28,7 @@ class Adam(Optimizer):
         beta1: Exponential decay rate for the first moment.
         beta2: Exponential decay rate for the second moment.
         eps: Numerical stability term.
-        weight_decay: Decoupled L2 penalty applied to gradients before moments.
+        weight_decay: L2 penalty added to gradients before Adam moment updates.
     """
 
     def __init__(
@@ -41,16 +41,34 @@ class Adam(Optimizer):
         weight_decay: float = 0.0,
     ) -> None:
         super().__init__(parameters)
+
         if lr <= 0:
-            raise ValueError(f"lr must be positive, got {lr}.")
+            raise ValueError(
+                f"lr must be positive, got {lr}."
+            )
+
         if not 0.0 <= beta1 < 1.0:
-            raise ValueError(f"beta1 must satisfy 0 <= beta1 < 1, got {beta1}.")
+            raise ValueError(
+                "beta1 must satisfy "
+                f"0 <= beta1 < 1, got {beta1}."
+            )
+
         if not 0.0 <= beta2 < 1.0:
-            raise ValueError(f"beta2 must satisfy 0 <= beta2 < 1, got {beta2}.")
+            raise ValueError(
+                "beta2 must satisfy "
+                f"0 <= beta2 < 1, got {beta2}."
+            )
+
         if eps <= 0:
-            raise ValueError(f"eps must be positive, got {eps}.")
+            raise ValueError(
+                f"eps must be positive, got {eps}."
+            )
+
         if weight_decay < 0:
-            raise ValueError(f"weight_decay must be non-negative, got {weight_decay}.")
+            raise ValueError(
+                "weight_decay must be non-negative, "
+                f"got {weight_decay}."
+            )
 
         self.lr = float(lr)
         self.beta1 = float(beta1)
@@ -58,24 +76,62 @@ class Adam(Optimizer):
         self.eps = float(eps)
         self.weight_decay = float(weight_decay)
         self.t = 0
-        self._m = [np.zeros_like(p.data) for p in self.parameters]
-        self._v = [np.zeros_like(p.data) for p in self.parameters]
+
+        self._m = [
+            np.zeros_like(p.data)
+            for p in self.parameters
+        ]
+
+        self._v = [
+            np.zeros_like(p.data)
+            for p in self.parameters
+        ]
 
     def step(self) -> None:
         self.t += 1
-        b1_t = 1.0 - self.beta1**self.t
-        b2_t = 1.0 - self.beta2**self.t
 
-        for i, param in enumerate(self.parameters):
+        b1_t = (
+            1.0 - self.beta1**self.t
+        )
+        b2_t = (
+            1.0 - self.beta2**self.t
+        )
+
+        for i, param in enumerate(
+            self.parameters
+        ):
             if param.grad is None:
                 continue
+
             grad = param.grad
+
             if self.weight_decay != 0.0:
-                grad = grad + self.weight_decay * param.data
+                grad = (
+                    grad
+                    + self.weight_decay * param.data
+                )
 
-            self._m[i] = self.beta1 * self._m[i] + (1.0 - self.beta1) * grad
-            self._v[i] = self.beta2 * self._v[i] + (1.0 - self.beta2) * (grad * grad)
+            self._m[i] = (
+                self.beta1 * self._m[i]
+                + (1.0 - self.beta1) * grad
+            )
 
-            m_hat = self._m[i] / b1_t
-            v_hat = self._v[i] / b2_t
-            param.data = param.data - self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
+            self._v[i] = (
+                self.beta2 * self._v[i]
+                + (1.0 - self.beta2)
+                * (grad * grad)
+            )
+
+            m_hat = (
+                self._m[i] / b1_t
+            )
+            v_hat = (
+                self._v[i] / b2_t
+            )
+
+            param.data = (
+                param.data
+                - self.lr
+                * m_hat
+                / (np.sqrt(v_hat) + self.eps)
+            )
