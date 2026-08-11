@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 
 from nanonet.nn.parameter import Parameter
-from nanonet.tensor import Tensor
+from nanonet.tensor import Tensor, no_grad
 
 
 class Module:
@@ -30,8 +30,14 @@ class Module:
             return
 
         # Remove stale registrations when overwriting an attribute.
-        modules: OrderedDict[str, Module] = self.__dict__.get("_modules", OrderedDict())
-        params: OrderedDict[str, Parameter] = self.__dict__.get("_parameters", OrderedDict())
+        modules: OrderedDict[str, Module] = self.__dict__.get(
+            "_modules",
+            OrderedDict(),
+        )
+        params: OrderedDict[str, Parameter] = self.__dict__.get(
+            "_parameters",
+            OrderedDict(),
+        )
         modules.pop(name, None)
         params.pop(name, None)
 
@@ -46,7 +52,9 @@ class Module:
         return self.forward(*args, **kwargs)
 
     def forward(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError(f"{type(self).__name__} must implement forward().")
+        raise NotImplementedError(
+            f"{type(self).__name__} must implement forward()."
+        )
 
     def parameters(self) -> list[Parameter]:
         """Return all trainable parameters in this module (recursively)."""
@@ -55,7 +63,10 @@ class Module:
             params.extend(module.parameters())
         return params
 
-    def named_parameters(self, prefix: str = "") -> list[tuple[str, Parameter]]:
+    def named_parameters(
+        self,
+        prefix: str = "",
+    ) -> list[tuple[str, Parameter]]:
         """Return ``(name, parameter)`` pairs recursively."""
         result: list[tuple[str, Parameter]] = []
         for name, param in self._parameters.items():
@@ -90,9 +101,16 @@ class Module:
 
     def state_dict(self) -> OrderedDict[str, np.ndarray]:
         """Return a flat mapping of parameter names to NumPy arrays (copies)."""
-        return OrderedDict((name, param.data.copy()) for name, param in self.named_parameters())
+        return OrderedDict(
+            (name, param.data.copy())
+            for name, param in self.named_parameters()
+        )
 
-    def load_state_dict(self, state_dict: dict[str, np.ndarray], strict: bool = True) -> None:
+    def load_state_dict(
+        self,
+        state_dict: dict[str, np.ndarray],
+        strict: bool = True,
+    ) -> None:
         """Load parameter values from a state dictionary.
 
         Args:
@@ -111,13 +129,16 @@ class Module:
         for name, array in state_dict.items():
             if name not in current:
                 if strict:
-                    raise KeyError(f"Unexpected key in state_dict: {name}")
+                    raise KeyError(
+                        f"Unexpected key in state_dict: {name}"
+                    )
                 continue
             param = current[name]
             arr = np.asarray(array, dtype=param.data.dtype)
             if arr.shape != param.shape:
                 raise ValueError(
-                    f"Shape mismatch for '{name}': expected {param.shape}, got {arr.shape}."
+                    f"Shape mismatch for '{name}': "
+                    f"expected {param.shape}, got {arr.shape}."
                 )
             param.data = arr.copy()
 
@@ -130,7 +151,10 @@ class Module:
             total += int(param.size)
         return total
 
-    def summary(self, input_shape: tuple[int, ...] | None = None) -> str:
+    def summary(
+        self,
+        input_shape: tuple[int, ...] | None = None,
+    ) -> str:
         """Return a human-readable summary of layers and parameter counts.
 
         Args:
@@ -157,36 +181,53 @@ class Module:
             total += n_params
             out_shape = shapes.get(name, "?")
             label = f"{type(module).__name__}"
-            if hasattr(module, "in_features") and hasattr(module, "out_features"):
-                label = f"{type(module).__name__}({module.in_features},{module.out_features})"
+            if (
+                hasattr(module, "in_features")
+                and hasattr(module, "out_features")
+            ):
+                label = (
+                    f"{type(module).__name__}"
+                    f"({module.in_features},{module.out_features})"
+                )
             elif hasattr(module, "p"):
                 label = f"{type(module).__name__}(p={module.p})"
-            lines.append(f"{label:<28} {out_shape:<18} {n_params:>12}")
+            lines.append(
+                f"{label:<28} {out_shape:<18} {n_params:>12}"
+            )
 
         lines.append("-" * 60)
-        lines.append(f"{'Total parameters:':<47} {total:>12}")
+        lines.append(
+            f"{'Total parameters:':<47} {total:>12}"
+        )
         text = "\n".join(lines)
         print(text)
         return text
 
-    def _infer_shapes(self, input_shape: tuple[int, ...]) -> dict[str, str]:
+    def _infer_shapes(
+        self,
+        input_shape: tuple[int, ...],
+    ) -> dict[str, str]:
         """Best-effort shape inference via a detached forward pass."""
-        from nanonet.nn.sequential import Sequential  # local import to avoid cycles
+        from nanonet.nn.sequential import Sequential
 
         shapes: dict[str, str] = {}
         if not isinstance(self, Sequential):
             return shapes
 
-        x: Any = Tensor(np.zeros((1, *input_shape), dtype=np.float64), requires_grad=False)
+        x: Any = Tensor(
+            np.zeros((1, *input_shape), dtype=np.float64),
+            requires_grad=False,
+        )
         was_training = self.training
         self.eval()
         try:
-            for name, module in self._modules.items():
-                x = module(x)
-                if isinstance(x, Tensor):
-                    shapes[name] = str(("?",) + x.shape[1:])
-                else:
-                    shapes[name] = "?"
+            with no_grad():
+                for name, module in self._modules.items():
+                    x = module(x)
+                    if isinstance(x, Tensor):
+                        shapes[name] = str(("?",) + x.shape[1:])
+                    else:
+                        shapes[name] = "?"
         except Exception:
             # Shape inference is best-effort; summary still shows parameter counts.
             pass
@@ -195,7 +236,7 @@ class Module:
         return shapes
 
     def save(self, path: str | Any) -> None:
-        """Save parameters to an ``.npz`` file (see ``nanonet.serialization``)."""
+        """Save parameters to an ``.npz`` file."""
         from nanonet.serialization import save_model
 
         save_model(self, path)

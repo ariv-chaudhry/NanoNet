@@ -5,7 +5,15 @@ This module re-exports the public pieces so documentation can refer to a
 dedicated autodiff entry point.
 """
 
-from nanonet.tensor import Function, Tensor, exp, log, maximum
+from nanonet.tensor import (
+    Function,
+    Tensor,
+    exp,
+    is_grad_enabled,
+    log,
+    maximum,
+    no_grad,
+)
 from nanonet.utils import unbroadcast
 
 __all__ = [
@@ -14,5 +22,7 @@ __all__ = [
     "exp",
     "log",
     "maximum",
+    "no_grad",
+    "is_grad_enabled",
     "unbroadcast",
 ]

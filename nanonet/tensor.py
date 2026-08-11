@@ -7,11 +7,37 @@ the chain rule from the output toward the leaves.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any
 
 import numpy as np
 
 from nanonet.utils import unbroadcast
+
+
+_grad_enabled: ContextVar[bool] = ContextVar("nanonet_grad_enabled", default=True)
+
+
+def is_grad_enabled() -> bool:
+    """Return whether operations are currently recording an autograd graph."""
+    return _grad_enabled.get()
+
+
+@contextmanager
+def no_grad() -> Iterator[None]:
+    """Temporarily disable autograd graph construction.
+
+    This is useful for inference, evaluation, and other forward-only work.
+    The previous gradient-recording state is restored when the context exits,
+    including when the context is nested or an exception is raised.
+    """
+    token = _grad_enabled.set(False)
+    try:
+        yield
+    finally:
+        _grad_enabled.reset(token)
 
 
 def _as_tensor(value: Any) -> Tensor:
@@ -39,7 +65,7 @@ class Function:
         self.needs_input_grad = [t.requires_grad for t in tensors]
         raw = [t.data for t in tensors]
         result_data = self._forward(*raw)
-        requires_grad = any(self.needs_input_grad)
+        requires_grad = is_grad_enabled() and any(self.needs_input_grad)
         out = Tensor(result_data, requires_grad=requires_grad)
         if requires_grad:
             out._grad_fn = self
@@ -123,7 +149,10 @@ class Pow(Function):
         gb = None
         if self.needs_input_grad[0]:
             # d/da (a^b) = b * a^(b-1)
-            ga = unbroadcast(grad_output * b.data * (a.data ** (b.data - 1.0)), self._a_shape)
+            ga = unbroadcast(
+                grad_output * b.data * (a.data ** (b.data - 1.0)),
+                self._a_shape,
+            )
         if self.needs_input_grad[1]:
             # d/db (a^b) = a^b * log(a); define 0 for non-positive bases
             with np.errstate(divide="ignore", invalid="ignore"):
@@ -143,17 +172,48 @@ class Neg(Function):
 class MatMul(Function):
     def _forward(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         self.save_for_backward(Tensor(a), Tensor(b))
-        return a @ b
+        self._a_shape = a.shape
+        self._b_shape = b.shape
+        return np.matmul(a, b)
 
     def _backward(self, grad_output: np.ndarray) -> tuple[np.ndarray | None, ...]:
         a, b = self.saved_tensors
-        ga = grad_output @ b.data.T if self.needs_input_grad[0] else None
-        gb = a.data.T @ grad_output if self.needs_input_grad[1] else None
+        a_data = a.data
+        b_data = b.data
+
+        # np.matmul treats 1-D operands specially: a leading or trailing
+        # dimension is temporarily inserted for the matrix product and removed
+        # from the result. Recreate those promoted shapes for the gradient math.
+        a_was_1d = a_data.ndim == 1
+        b_was_1d = b_data.ndim == 1
+        a_mat = a_data[np.newaxis, :] if a_was_1d else a_data
+        b_mat = b_data[:, np.newaxis] if b_was_1d else b_data
+
+        grad_mat = np.asarray(grad_output)
+        if a_was_1d and b_was_1d:
+            grad_mat = grad_mat.reshape(1, 1)
+        elif a_was_1d:
+            grad_mat = np.expand_dims(grad_mat, axis=-2)
+        elif b_was_1d:
+            grad_mat = np.expand_dims(grad_mat, axis=-1)
+
+        ga = None
+        gb = None
+        if self.needs_input_grad[0]:
+            ga_mat = np.matmul(grad_mat, np.swapaxes(b_mat, -1, -2))
+            ga = unbroadcast(ga_mat, a_mat.shape).reshape(self._a_shape)
+        if self.needs_input_grad[1]:
+            gb_mat = np.matmul(np.swapaxes(a_mat, -1, -2), grad_mat)
+            gb = unbroadcast(gb_mat, b_mat.shape).reshape(self._b_shape)
         return ga, gb
 
 
 class Sum(Function):
-    def __init__(self, axis: int | tuple[int, ...] | None = None, keepdims: bool = False) -> None:
+    def __init__(
+        self,
+        axis: int | tuple[int, ...] | None = None,
+        keepdims: bool = False,
+    ) -> None:
         super().__init__()
         self.axis = axis
         self.keepdims = keepdims
@@ -177,7 +237,11 @@ class Sum(Function):
 
 
 class Mean(Function):
-    def __init__(self, axis: int | tuple[int, ...] | None = None, keepdims: bool = False) -> None:
+    def __init__(
+        self,
+        axis: int | tuple[int, ...] | None = None,
+        keepdims: bool = False,
+    ) -> None:
         super().__init__()
         self.axis = axis
         self.keepdims = keepdims
@@ -274,10 +338,26 @@ class Maximum(Function):
         a, b = self.saved_tensors
         # Split ties evenly so gradients remain well-defined.
         equal = a.data == b.data
-        mask_a = np.where(equal, 0.5, (a.data > b.data).astype(np.float64))
-        mask_b = np.where(equal, 0.5, (b.data > a.data).astype(np.float64))
-        ga = unbroadcast(grad_output * mask_a, self._a_shape) if self.needs_input_grad[0] else None
-        gb = unbroadcast(grad_output * mask_b, self._b_shape) if self.needs_input_grad[1] else None
+        mask_a = np.where(
+            equal,
+            0.5,
+            (a.data > b.data).astype(np.float64),
+        )
+        mask_b = np.where(
+            equal,
+            0.5,
+            (b.data > a.data).astype(np.float64),
+        )
+        ga = (
+            unbroadcast(grad_output * mask_a, self._a_shape)
+            if self.needs_input_grad[0]
+            else None
+        )
+        gb = (
+            unbroadcast(grad_output * mask_b, self._b_shape)
+            if self.needs_input_grad[1]
+            else None
+        )
         return ga, gb
 
 
@@ -317,7 +397,10 @@ class Tensor:
         if isinstance(data, Tensor):
             arr = data.data
         else:
-            arr = np.asarray(data, dtype=dtype if dtype is not None else np.float64)
+            arr = np.asarray(
+                data,
+                dtype=dtype if dtype is not None else np.float64,
+            )
         if dtype is not None and arr.dtype != dtype:
             arr = arr.astype(dtype, copy=False)
         elif arr.dtype.kind not in "fc":
@@ -370,22 +453,24 @@ class Tensor:
         self.grad = None
 
     def detach(self) -> Tensor:
-        """Return a new Tensor sharing data but detached from the graph."""
+        """Return an independent copy of this tensor detached from the graph."""
         return Tensor(self.data.copy(), requires_grad=False)
 
     # ------------------------------------------------------------------
     # Backward
     # ------------------------------------------------------------------
     def backward(self, gradient: np.ndarray | Tensor | None = None) -> None:
-        """Compute gradients of this tensor w.r.t. all leaves via reverse-mode AD.
+        """Compute gradients of this tensor w.r.t. all reachable leaves.
 
         For a non-scalar output, ``gradient`` must be provided and match
-        ``self.shape``. After ``backward()``, the computational graph for this
-        result is no longer needed and intermediate Function nodes may be GC'd;
-        ``retain_graph`` is not supported in v0.1.
+        ``self.shape``. Gradients accumulate in each tensor's ``.grad`` field
+        across backward calls until ``zero_grad()`` is used. The graph itself
+        is retained, so the same result may be backpropagated more than once.
         """
         if not self.requires_grad:
-            raise RuntimeError("Cannot call backward on a Tensor that does not require grad.")
+            raise RuntimeError(
+                "Cannot call backward on a Tensor that does not require grad."
+            )
 
         if gradient is None:
             if self.data.size != 1:
@@ -404,7 +489,7 @@ class Tensor:
                 f"Gradient shape {grad.shape} does not match tensor shape {self.shape}."
             )
 
-        # Topological order of nodes that require gradients.
+        # Build a topological order of the differentiable graph.
         topo: list[Tensor] = []
         visited: set[int] = set()
 
@@ -420,20 +505,40 @@ class Tensor:
 
         build(self)
 
-        self.grad = grad if self.grad is None else self.grad + grad
+        # Use a per-call gradient buffer for propagation. Tensor.grad stores the
+        # persistent accumulated gradient, but historical gradients must never be
+        # propagated through the graph again on a later backward() call.
+        pending: dict[int, np.ndarray] = {id(self): grad}
 
         for node in reversed(topo):
-            if node._grad_fn is None or node.grad is None:
+            node_grad = pending.get(id(node))
+            if node_grad is None:
                 continue
-            grads = node._grad_fn._backward(node.grad)
+
+            node.grad = (
+                node_grad
+                if node.grad is None
+                else node.grad + node_grad
+            )
+
+            if node._grad_fn is None:
+                continue
+
+            grads = node._grad_fn._backward(node_grad)
             for parent, parent_grad in zip(node._parents, grads):
                 if parent_grad is None or not parent.requires_grad:
                     continue
-                parent_grad = np.asarray(parent_grad, dtype=parent.data.dtype)
-                if parent.grad is None:
-                    parent.grad = parent_grad
+                parent_grad = np.asarray(
+                    parent_grad,
+                    dtype=parent.data.dtype,
+                )
+                parent_id = id(parent)
+                if parent_id in pending:
+                    pending[parent_id] = (
+                        pending[parent_id] + parent_grad
+                    )
                 else:
-                    parent.grad = parent.grad + parent_grad
+                    pending[parent_id] = parent_grad
 
     # ------------------------------------------------------------------
     # Operators
@@ -489,10 +594,18 @@ class Tensor:
     # ------------------------------------------------------------------
     # Tensor methods
     # ------------------------------------------------------------------
-    def sum(self, axis: int | tuple[int, ...] | None = None, keepdims: bool = False) -> Tensor:
+    def sum(
+        self,
+        axis: int | tuple[int, ...] | None = None,
+        keepdims: bool = False,
+    ) -> Tensor:
         return Sum(axis=axis, keepdims=keepdims).apply(self)
 
-    def mean(self, axis: int | tuple[int, ...] | None = None, keepdims: bool = False) -> Tensor:
+    def mean(
+        self,
+        axis: int | tuple[int, ...] | None = None,
+        keepdims: bool = False,
+    ) -> Tensor:
         return Mean(axis=axis, keepdims=keepdims).apply(self)
 
     def reshape(self, *shape: int) -> Tensor:

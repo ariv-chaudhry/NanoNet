@@ -34,9 +34,11 @@ def test_gradient_accumulation():
     y = x * 2
     y.backward()
     assert np.isclose(x.grad, 2.0)
+
     z = x * 3
     z.backward()
-    assert np.isclose(x.grad, 5.0)  # accumulated
+    assert np.isclose(x.grad, 5.0)
+
     x.zero_grad()
     assert x.grad is None
 
@@ -45,6 +47,7 @@ def test_chained_derivative():
     x = Tensor(2.0, requires_grad=True)
     y = (x * 3 + 1) ** 2
     y.backward()
+
     # dy/dx = 2*(3x+1)*3 = 6*(6+1) = 42
     assert np.isclose(x.grad, 42.0)
 
@@ -60,11 +63,22 @@ def test_unbroadcast_helper():
 
 
 def test_dense_bias_broadcast_grad():
-    x = Tensor(np.random.randn(32, 16), requires_grad=True)
-    w = Tensor(np.random.randn(16, 8), requires_grad=True)
-    b = Tensor(np.random.randn(8), requires_grad=True)
+    x = Tensor(
+        np.random.randn(32, 16),
+        requires_grad=True,
+    )
+    w = Tensor(
+        np.random.randn(16, 8),
+        requires_grad=True,
+    )
+    b = Tensor(
+        np.random.randn(8),
+        requires_grad=True,
+    )
+
     y = (x @ w + b).sum()
     y.backward()
+
     assert b.grad.shape == (8,)
     assert x.grad.shape == (32, 16)
     assert w.grad.shape == (16, 8)
@@ -74,8 +88,25 @@ def test_multivariable():
     x = Tensor(1.0, requires_grad=True)
     w = Tensor(2.0, requires_grad=True)
     b = Tensor(3.0, requires_grad=True)
+
     y = x * w + b
     y.backward()
+
     assert np.isclose(x.grad, 2.0)
     assert np.isclose(w.grad, 1.0)
     assert np.isclose(b.grad, 1.0)
+
+
+def test_repeated_backward_same_graph_accumulates_once_per_call():
+    x = Tensor(2.0, requires_grad=True)
+    y = x * x
+
+    y.backward()
+    assert np.isclose(x.grad, 4.0)
+
+    y.backward()
+    assert np.isclose(x.grad, 8.0)
+
+    x.zero_grad()
+    y.backward()
+    assert np.isclose(x.grad, 4.0)
