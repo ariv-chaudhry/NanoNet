@@ -29,8 +29,8 @@ pip-wheel-metadata/
 *.swo
 *~
 
-data/
-results/
+/data/
+/results/
 *.npz
 *.png
 !docs/**/*.png
