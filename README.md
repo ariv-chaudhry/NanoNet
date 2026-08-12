@@ -531,4 +531,16 @@ I'm trying to keep additions focused on things that are interesting to implement
 
 ## License
 
-NanoNet is available under the MIT License. See `LICENSE` for details.
+NanoNet is **source-available**, not open source.
+
+You are welcome to view the source code, study how the framework works, and
+run an unmodified copy for personal, educational, research, or evaluation
+purposes.
+
+Modification, redistribution, incorporation into other projects, commercial
+distribution, and representation of NanoNet or its source code as your own
+work are not permitted without prior written permission.
+
+Copyright © 2026 Ariv Chaudhry. All rights reserved.
+
+See [`LICENSE`](LICENSE) for the complete terms.

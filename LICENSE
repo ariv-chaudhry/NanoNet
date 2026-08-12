@@ -1,21 +1,69 @@
-MIT License
+NanoNet Source-Available License
+Version 1.0
 
-Copyright (c) 2026 NanoNet Contributors
+Copyright (c) 2026 Ariv Chaudhry
+All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Permission
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Permission is granted to any person obtaining a copy of this software and
+associated documentation files (the "Software") to:
+
+(a) view and inspect the source code;
+(b) download the Software; and
+(c) execute an unmodified copy of the Software for personal, educational,
+    research, or evaluation purposes.
+
+2. Restrictions
+
+Except with prior written permission from the copyright holder, you may not:
+
+(a) modify, adapt, translate, alter, or create derivative works based on
+    the Software;
+
+(b) copy or redistribute the Software, in whole or in substantial part,
+    except as necessary to download and execute an unmodified copy as
+    permitted above;
+
+(c) incorporate the Software or any substantial portion of its source code
+    into another software project, product, service, or application;
+
+(d) sell, sublicense, license, rent, lease, or otherwise commercially
+    distribute the Software;
+
+(e) remove, obscure, or alter any copyright, authorship, attribution,
+    or proprietary notice contained in the Software;
+
+(f) represent the Software, or any substantial portion of the Software,
+    as your own work;
+
+(g) publish or distribute a modified version of the Software; or
+
+(h) use the name "NanoNet" or the name of the copyright holder to imply
+    endorsement of a derivative product, project, or service.
+
+3. Ownership
+
+The Software is licensed, not sold.
+
+All right, title, and interest in and to the Software, including all
+copyright and other intellectual property rights in the Software, remain
+with Ariv Chaudhry.
+
+No rights are granted except those expressly stated in this license.
+
+4. Contributions
+
+Unless separately agreed to in writing, this license does not grant
+permission to distribute modified versions of the Software.
+
+5. Disclaimer of Warranty
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,
+ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
