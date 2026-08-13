@@ -16,7 +16,6 @@ import numpy as np
 
 from nanonet.utils import unbroadcast
 
-
 _grad_enabled: ContextVar[bool] = ContextVar("nanonet_grad_enabled", default=True)
 
 

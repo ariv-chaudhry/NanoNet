@@ -5,7 +5,7 @@ import numpy as np
 from nanonet import Sequential, manual_seed
 from nanonet.layers import Dense, ReLU
 from nanonet.losses import CrossEntropyLoss, MSELoss
-from nanonet.optimizers import Adam, SGD
+from nanonet.optimizers import SGD, Adam
 
 
 def test_regression_fit_decreases_loss():
