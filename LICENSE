@@ -1,67 +1,40 @@
 NanoNet Source-Available License
-Version 1.0
-
 Copyright (c) 2026 Ariv Chaudhry
-All rights reserved.
+All Rights Reserved.
 
-1. Permission
+This software and its associated source code, documentation, examples,
+tests, and other materials (collectively, the "Software") are the
+exclusive property of Ariv Chaudhry.
 
-Permission is granted to any person obtaining a copy of this software and
-associated documentation files (the "Software") to:
+The source code is made publicly available for viewing, educational
+reference, and evaluation purposes only.
 
-(a) view and inspect the source code;
-(b) download the Software; and
-(c) execute an unmodified copy of the Software for personal, educational,
-    research, or evaluation purposes.
+Permission is NOT granted to copy, reproduce, modify, adapt, translate,
+publish, distribute, redistribute, sublicense, sell, commercially exploit,
+or create derivative works based on the Software, in whole or in part,
+without prior written permission from the copyright holder.
 
-2. Restrictions
+Permission is also NOT granted to incorporate substantial portions of the
+Software into another project, product, service, assignment, submission,
+publication, repository, or codebase without prior written permission from
+the copyright holder.
 
-Except with prior written permission from the copyright holder, you may not:
+Public availability of the source code does not place the Software in the
+public domain and does not constitute an open-source license.
 
-(a) modify, adapt, translate, alter, or create derivative works based on
-    the Software;
+You may view and study the source code for personal, non-commercial
+educational and evaluation purposes.
 
-(b) copy or redistribute the Software, in whole or in substantial part,
-    except as necessary to download and execute an unmodified copy as
-    permitted above;
+Any use beyond those purposes requires prior written permission from:
 
-(c) incorporate the Software or any substantial portion of its source code
-    into another software project, product, service, or application;
+Ariv Chaudhry
 
-(d) sell, sublicense, license, rent, lease, or otherwise commercially
-    distribute the Software;
-
-(e) remove, obscure, or alter any copyright, authorship, attribution,
-    or proprietary notice contained in the Software;
-
-(f) represent the Software, or any substantial portion of the Software,
-    as your own work;
-
-(g) publish or distribute a modified version of the Software; or
-
-(h) use the name "NanoNet" or the name of the copyright holder to imply
-    endorsement of a derivative product, project, or service.
-
-3. Ownership
-
-The Software is licensed, not sold.
-
-All right, title, and interest in and to the Software, including all
-copyright and other intellectual property rights in the Software, remain
-with Ariv Chaudhry.
-
-No rights are granted except those expressly stated in this license.
-
-4. Contributions
-
-Unless separately agreed to in writing, this license does not grant
-permission to distribute modified versions of the Software.
-
-5. Disclaimer of Warranty
+All copyright, ownership, and intellectual property rights in the Software
+remain with the copyright holder.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
 
 IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR
 OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,

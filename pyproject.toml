@@ -9,13 +9,21 @@ description = "An educational neural-network framework built from scratch with P
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
-authors = [{ name = "Ariv Chaudhry" }]
-keywords = ["machine-learning", "neural-networks", "autodiff", "numpy", "education"]
-
+authors = [
+    { name = "Ariv Chaudhry" }
+]
+keywords = [
+    "machine-learning",
+    "neural-networks",
+    "autodiff",
+    "numpy",
+    "education",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Education",
     "Intended Audience :: Developers",
+    "License :: Other/Proprietary License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -41,9 +49,10 @@ viz = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nanonet/nanonet"
-Documentation = "https://github.com/nanonet/nanonet/tree/main/docs"
-Repository = "https://github.com/nanonet/nanonet"
+Homepage = "https://github.com/ariv-chaudhry/NanoNet"
+Documentation = "https://github.com/ariv-chaudhry/NanoNet/tree/main/docs"
+Repository = "https://github.com/ariv-chaudhry/NanoNet"
+Issues = "https://github.com/ariv-chaudhry/NanoNet/issues"
 
 [tool.setuptools.packages.find]
 include = ["nanonet*"]
@@ -55,7 +64,9 @@ addopts = "-q"
 
 [tool.coverage.run]
 source = ["nanonet"]
-omit = ["nanonet/data/mnist.py"]
+omit = [
+    "nanonet/data/mnist.py",
+]
 
 [tool.coverage.report]
 show_missing = true
@@ -67,5 +78,14 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP"]
-ignore = ["E501", "B905"]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+]
+ignore = [
+    "E501",
+    "B905",
+]
