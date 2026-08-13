@@ -1,58 +1,71 @@
 # NanoNet
 
-A small neural-network framework built from scratch with Python and NumPy.
+A neural-network framework built from scratch with Python and NumPy.
 
-NanoNet started as a way for me to understand what libraries like PyTorch and TensorFlow are actually doing behind the scenes.
+NanoNet started as a way for me to understand what frameworks such as PyTorch
+are actually doing behind calls like:
 
-Instead of calling a high-level training API and letting a framework handle everything, I wanted to build the important pieces myself: tensors, computational graphs, automatic differentiation, backpropagation, optimizers, training loops, and model saving.
+```python
+loss.backward()
+optimizer.step()
+```
 
-The goal isn't to compete with PyTorch. It's to make the mechanics of neural networks easier to see and understand.
+Instead of wrapping an existing machine-learning library, I implemented the
+important pieces directly:
 
-NanoNet is small enough that you can follow the code from a single tensor operation all the way through backpropagation, but complete enough to train real models such as an MNIST digit classifier.
+- tensors
+- computational graphs
+- reverse-mode automatic differentiation
+- backpropagation
+- trainable parameters
+- neural-network layers
+- optimizers
+- data loading
+- training loops
+- numerical gradient checking
+- model serialization
+
+The goal is not to compete with PyTorch.
+
+The goal is to make the mechanics behind neural-network training small enough
+to read and understand.
 
 ---
 
 ## How It Works
 
-At a high level, training looks like this:
+A neural-network training step has two main stages.
+
+### Forward Pass
 
 ```text
-Forward pass
-────────────────────────────►
-
 Input → Dense → ReLU → Dense → Loss
-
-Gradient / backward pass
-◄────────────────────────────
 ```
 
-During the forward pass, NanoNet computes predictions while keeping track of the operations used to produce them.
+NanoNet calculates the output while recording the operations that produced it.
 
-Calling `backward()` then walks that graph in reverse and applies the chain rule to calculate gradients for every trainable parameter.
-
-A typical MNIST network looks like:
+### Backward Pass
 
 ```text
-Input (784)
-    │
-    ▼
-Dense (128)
-    │
-    ▼
-ReLU
-    │
-    ▼
-Dense (64)
-    │
-    ▼
-ReLU
-    │
-    ▼
-Dense (10)
-    │
-    ▼
-Cross Entropy
+Input ← Dense ← ReLU ← Dense ← Loss
 ```
+
+Calling:
+
+```python
+loss.backward()
+```
+
+walks the computational graph in reverse and applies the chain rule to
+calculate gradients.
+
+Those gradients are then used by an optimizer:
+
+```python
+optimizer.step()
+```
+
+to update the trainable parameters.
 
 ---
 
@@ -60,86 +73,182 @@ Cross Entropy
 
 NanoNet currently includes:
 
-* **Tensors and reverse-mode automatic differentiation**
-* NumPy-style **broadcasting** and matrix multiplication
-* A lightweight **Module / Parameter system**
-* `Sequential` models
-* **Dense layers**
-* ReLU, Sigmoid, Tanh, Softmax, Dropout, and Flatten
-* Mean Squared Error and numerically stable Cross Entropy
-* **SGD** with momentum and weight decay
-* **Adam**
-* Dataset and DataLoader utilities
-* Training and validation loops
-* Training history and plotting
-* MNIST downloading and caching
-* Model saving/loading using `.npz`
-* Numerical gradient checking
-* Model summaries and parameter counting
+### Automatic Differentiation
 
-The core library does **not** use PyTorch, TensorFlow, JAX, autograd, or another automatic-differentiation package.
+- reverse-mode automatic differentiation
+- computational graph construction
+- topological backward traversal
+- gradient accumulation
+- repeated backward passes
+- NumPy-style broadcasting gradients
+- numerical gradient checking
 
-Just Python, NumPy, and a lot of chain rule.
+### Tensor Operations
+
+- addition
+- subtraction
+- multiplication
+- division
+- powers
+- negation
+- sum
+- mean
+- reshape
+- transpose
+- indexing
+- exponential
+- logarithm
+- element-wise maximum
+- NumPy-style `matmul`
+
+Matrix multiplication supports:
+
+- vector @ vector
+- matrix @ vector
+- vector @ matrix
+- matrix @ matrix
+- batched matrix multiplication
+- broadcast batch dimensions
+
+### Neural-Network Components
+
+- `Parameter`
+- `Module`
+- `Sequential`
+- `Dense`
+- `ReLU`
+- `Sigmoid`
+- `Tanh`
+- `Softmax`
+- `Dropout`
+- `Flatten`
+
+### Loss Functions
+
+- Mean Squared Error
+- numerically stable Cross Entropy
+
+### Optimizers
+
+- SGD
+- momentum
+- L2 weight decay
+- Adam
+
+NanoNet's Adam weight decay is implemented as **coupled L2
+regularization**, not AdamW-style decoupled weight decay.
+
+### Data
+
+- Dataset abstraction
+- `TensorDataset`
+- mini-batch `DataLoader`
+- optional shuffling
+- deterministic seeding
+- MNIST downloading and caching
+
+### Training
+
+- reusable `Trainer`
+- `model.fit(...)`
+- `model.evaluate(...)`
+- validation metrics
+- training history
+- plotting support
+- `no_grad()` inference
+
+### Model Utilities
+
+- parameter counting
+- model summaries
+- `state_dict()`
+- `.npz` serialization
+- JSON parameter metadata
 
 ---
 
-## Why I Built This
+## Why I Built NanoNet
 
-Using modern machine-learning libraries makes it easy to build a neural network without really knowing what happens after calling:
+Modern machine-learning libraries make it possible to build a neural network
+without knowing much about what happens internally.
+
+For example:
 
 ```python
 loss.backward()
+```
+
+looks simple, but underneath it requires:
+
+```text
+computational graphs
+topological sorting
+the chain rule
+gradient accumulation
+broadcast-gradient reduction
+matrix derivatives
+```
+
+Similarly:
+
+```python
 optimizer.step()
 ```
 
-I wanted to understand that part.
+requires algorithms such as SGD or Adam to convert those gradients into
+parameter updates.
 
-NanoNet implements the training process directly:
-
-1. perform operations on tensors while recording a computational graph
-2. work backward through that graph to calculate gradients
-3. update parameters using an optimizer such as SGD or Adam
-4. repeat that process across batches of training data
-
-Building those pieces myself gave me a much better understanding of how backpropagation, gradient accumulation, broadcasting, weight initialization, and optimization actually work.
+NanoNet was my way of implementing those mechanics myself instead of only
+using them through another framework.
 
 ---
 
-## Installation
+# Installation
 
-Clone the repository and create a virtual environment:
+Clone the repository:
+
+```bash
+git clone https://github.com/ariv-chaudhry/NanoNet.git
+cd NanoNet
+```
+
+Create a virtual environment:
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it:
+Activate it.
+
+### Linux / macOS
 
 ```bash
-# Linux / macOS
 source .venv/bin/activate
 ```
 
+### Windows PowerShell
+
 ```powershell
-# Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Then install NanoNet:
+Install NanoNet and the development dependencies:
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-NumPy is the only core runtime dependency.
+The core library only requires:
 
-The development dependencies include pytest, coverage, Matplotlib, and Ruff.
+```text
+NumPy
+```
 
 ---
 
-## Quick Start
+# Quick Start
 
-Here's a simple multilayer classifier:
+A simple classifier can be created using:
 
 ```python
 from nanonet import Sequential, manual_seed
@@ -158,7 +267,11 @@ model = Sequential([
     Dense(64, 10),
 ])
 
-optimizer = Adam(model.parameters(), lr=0.001)
+optimizer = Adam(
+    model.parameters(),
+    lr=0.001,
+)
+
 loss_fn = CrossEntropyLoss()
 
 model.fit(
@@ -170,30 +283,44 @@ model.fit(
     batch_size=64,
 )
 
-accuracy = model.evaluate(X_test, y_test)
+accuracy = model.evaluate(
+    X_test,
+    y_test,
+)
+
+print(accuracy)
 ```
 
-The API is intentionally familiar if you've used PyTorch or Keras before, but the implementation underneath it is NanoNet's own.
+The API is intentionally familiar if you've used frameworks such as PyTorch
+or Keras, but the underlying implementation is NanoNet's own.
 
 ---
 
-## Automatic Differentiation
+# Automatic Differentiation
 
-The part of NanoNet I found most interesting to build was the automatic-differentiation engine.
+The core of NanoNet is its automatic-differentiation engine.
 
-For example:
+Consider:
 
 ```python
 from nanonet import Tensor
 
-x = Tensor(3.0, requires_grad=True)
+x = Tensor(
+    3.0,
+    requires_grad=True,
+)
 
 y = x**2 + 2*x
 
 y.backward()
 
 print(x.grad)
-# 8.0
+```
+
+Output:
+
+```text
+8.0
 ```
 
 Mathematically:
@@ -202,40 +329,207 @@ Mathematically:
 y = x² + 2x
 
 dy/dx = 2x + 2
+```
 
-At x = 3:
+At:
 
+```text
+x = 3
+```
+
+we get:
+
+```text
 dy/dx = 8
 ```
 
-NanoNet builds a graph from the operations used to create `y`, sorts the dependencies, and then walks that graph backward to calculate the derivative.
+NanoNet creates the computational graph from the operations used to construct
+`y`, then traverses that graph backward to calculate the derivative.
 
-It also handles cases where a tensor contributes to the result through multiple paths:
+---
+
+## Branching Graphs
+
+A Tensor can contribute to the output through multiple paths.
+
+For example:
 
 ```python
-x = Tensor(2.0, requires_grad=True)
+x = Tensor(
+    2.0,
+    requires_grad=True,
+)
 
 y = x*x + 3*x
 
 y.backward()
 
 print(x.grad)
-# 7.0
 ```
 
-Gradients from both branches are accumulated correctly.
+Output:
+
+```text
+7.0
+```
+
+because:
+
+```text
+dy/dx = 2x + 3
+```
+
+and:
+
+```text
+2(2) + 3 = 7
+```
+
+NanoNet automatically combines the gradients from both paths.
 
 ---
 
-## Building a Neural Network
+## Repeated Backward Calls
 
-Models can be created using `Sequential`:
+Gradients accumulate across calls to:
+
+```python
+backward()
+```
+
+For example:
+
+```python
+x = Tensor(
+    2.0,
+    requires_grad=True,
+)
+
+y = x * x
+
+y.backward()
+
+print(x.grad)
+```
+
+produces:
+
+```text
+4.0
+```
+
+Calling:
+
+```python
+y.backward()
+```
+
+again gives:
+
+```text
+8.0
+```
+
+Each backward traversal propagates only the gradient generated by that
+particular call.
+
+Previously accumulated `.grad` values are stored for the user but are not
+incorrectly propagated through the graph again.
+
+---
+
+# Broadcasting
+
+NanoNet supports NumPy-style broadcasting.
+
+For example:
+
+```text
+X: (32, 128)
+b: (128,)
+```
+
+allows:
+
+```python
+Y = X + b
+```
+
+to produce:
+
+```text
+(32, 128)
+```
+
+During backward, NanoNet reduces the bias gradient back to:
+
+```text
+(128,)
+```
+
+rather than incorrectly leaving it as:
+
+```text
+(32, 128)
+```
+
+This is required for operations such as Dense-layer bias addition.
+
+---
+
+# Matrix Multiplication
+
+NanoNet's `@` operator follows NumPy-style matrix multiplication.
+
+Supported forms include:
+
+```text
+vector @ vector
+matrix @ vector
+vector @ matrix
+matrix @ matrix
+batched matrix @ matrix
+batched matrix @ batched matrix
+```
+
+For example:
+
+```python
+from nanonet import Tensor
+
+a = Tensor(
+    [1.0, 2.0, 3.0],
+    requires_grad=True,
+)
+
+b = Tensor(
+    [4.0, 5.0, 6.0],
+    requires_grad=True,
+)
+
+y = a @ b
+
+y.backward()
+```
+
+Both vectors receive the correct gradients.
+
+The same autograd operation also supports the matrix multiplication required
+by Dense layers:
+
+```text
+X @ W
+```
+
+---
+
+# Neural Networks
+
+Models can be assembled with `Sequential`.
 
 ```python
 from nanonet import Sequential
 from nanonet.layers import Dense, ReLU
-from nanonet.losses import CrossEntropyLoss
-from nanonet.optimizers import Adam
 
 model = Sequential([
     Dense(784, 128),
@@ -244,303 +538,701 @@ model = Sequential([
     ReLU(),
     Dense(64, 10),
 ])
-
-optimizer = Adam(model.parameters(), lr=1e-3)
-loss_fn = CrossEntropyLoss()
-
-model.summary(input_shape=(784,))
-
-print("parameters:", model.num_parameters())
 ```
 
-NanoNet automatically keeps track of trainable `Parameter` objects inside each layer.
+NanoNet automatically tracks Parameters contained within each layer.
 
-Gradients can be cleared with either:
+You can inspect the model with:
 
 ```python
-optimizer.zero_grad()
+model.summary(
+    input_shape=(784,),
+)
 ```
 
-or:
+and count trainable parameters with:
 
 ```python
-model.zero_grad()
+print(
+    model.num_parameters()
+)
 ```
-
-After clearing, each parameter's `.grad` is set back to `None` until the next backward pass.
 
 ---
 
-## Training
+# Training
 
-You can train directly through `model.fit(...)`, or use the `Trainer` class if you want a little more control:
+NanoNet includes a reusable training loop.
 
 ```python
 from nanonet.training import Trainer
 
-history = Trainer(model).fit(
+trainer = Trainer(model)
+
+history = trainer.fit(
     X_train,
     y_train,
     loss_fn=loss_fn,
     optimizer=optimizer,
     epochs=10,
     batch_size=64,
-    validation_data=(X_test, y_test),
+    validation_data=(
+        X_test,
+        y_test,
+    ),
 )
 ```
 
-Training output looks something like:
-
-```text
-Epoch 1/10
-loss: 0.4832 - accuracy: 85.72% - val_loss: 0.2314 - val_accuracy: 93.16%
-```
-
-Training history can also be plotted:
+The same functionality is exposed through:
 
 ```python
-history.plot(save_path="results/history.png")
+model.fit(...)
 ```
 
-This requires Matplotlib.
+A training iteration performs:
+
+```text
+forward
+  ↓
+loss
+  ↓
+clear gradients
+  ↓
+backward
+  ↓
+optimizer step
+```
 
 ---
 
-## MNIST
+# Inference and `no_grad()`
 
-NanoNet includes an MNIST example using a fully connected network.
+Training mode and gradient recording are separate concepts.
+
+To disable layer behavior such as Dropout:
+
+```python
+model.eval()
+```
+
+To disable autograd graph construction:
+
+```python
+from nanonet import no_grad
+
+with no_grad():
+    predictions = model(inputs)
+```
+
+`model.evaluate(...)` automatically uses both evaluation mode and
+`no_grad()`.
+
+This avoids building unnecessary computational graphs during inference.
+
+---
+
+# Cross Entropy
+
+Classification models should pass **raw logits** directly to:
+
+```python
+CrossEntropyLoss()
+```
+
+For example:
+
+```python
+logits = model(inputs)
+
+loss = loss_fn(
+    logits,
+    targets,
+)
+```
+
+Do not apply Softmax before Cross Entropy.
+
+NanoNet combines log-softmax and negative log likelihood using a numerically
+stable log-sum-exp implementation.
+
+Targets must contain valid integer class labels.
+
+For example:
+
+```text
+0
+1
+2
+```
+
+are valid.
+
+A fractional target such as:
+
+```text
+1.5
+```
+
+raises an error instead of being silently converted to class `1`.
+
+---
+
+# Optimizers
+
+NanoNet includes SGD and Adam implementations written directly with NumPy.
+
+## SGD
+
+Basic SGD performs:
+
+```text
+θ ← θ − η∇L
+```
+
+Momentum can also be enabled.
+
+## Adam
+
+Adam tracks exponential moving averages of:
+
+```text
+gradients
+```
+
+and:
+
+```text
+squared gradients
+```
+
+and uses them to adapt each parameter's update.
+
+NanoNet's Adam `weight_decay` option is **coupled L2 regularization**:
+
+```text
+g ← ∇L + λθ
+```
+
+The adjusted gradient then enters Adam's moment calculations.
+
+This is different from AdamW, where weight decay is applied separately from
+the gradient-based Adam update.
+
+See:
+
+```text
+docs/optimizers.md
+```
+
+for the full derivation.
+
+---
+
+# Gradient Clearing
+
+Gradients accumulate unless they are cleared.
+
+A typical training step therefore uses:
+
+```python
+optimizer.zero_grad()
+
+predictions = model(inputs)
+loss = loss_fn(
+    predictions,
+    targets,
+)
+
+loss.backward()
+
+optimizer.step()
+```
+
+You can also clear gradients with:
+
+```python
+model.zero_grad()
+```
+
+NanoNet represents a cleared gradient as:
+
+```python
+None
+```
+
+rather than allocating an array of zeros.
+
+---
+
+# MNIST
+
+NanoNet includes a fully connected MNIST example.
 
 For a quick smoke test:
 
 ```bash
-python examples/mnist_mlp.py --epochs 1 --train-limit 5000
+python examples/mnist_mlp.py \
+    --epochs 1 \
+    --train-limit 5000
 ```
 
-During development, this reached **88.15% test accuracy after one epoch using 5,000 training samples**.
+During development, the model reached:
+
+```text
+88.15% test accuracy
+```
+
+after one epoch using 5,000 training examples.
 
 For a longer run:
 
 ```bash
-python examples/mnist_mlp.py --epochs 10 --batch-size 64 --lr 0.001
+python examples/mnist_mlp.py \
+    --epochs 10 \
+    --batch-size 64 \
+    --lr 0.001
 ```
 
-Results will vary depending on initialization, configuration, and hardware.
+Results vary depending on:
 
-More details about the model and training setup are in `docs/mnist.md`.
+- initialization
+- random seed
+- training configuration
+- number of epochs
+
+The downloaded MNIST files are cached under:
+
+```text
+data/mnist/
+```
+
+and are not stored in the Git repository.
 
 ---
 
-## Gradient Checking
+# Nonlinear Regression
 
-Backpropagation bugs can be surprisingly hard to notice. A model can sometimes appear to train even when one of its gradients is slightly wrong.
+NanoNet can also train regression models.
 
-NanoNet includes numerical gradient checking to help verify the autodiff engine:
+The regression example approximates a nonlinear function using a small
+multilayer perceptron.
+
+Run:
+
+```bash
+python examples/regression.py
+```
+
+---
+
+# Gradient Checking
+
+One of the easiest ways to introduce bugs into an autodiff engine is to write
+a backward derivative that looks plausible but is slightly wrong.
+
+NanoNet therefore includes numerical gradient checking.
+
+Example:
 
 ```python
 from nanonet import Tensor
 from nanonet.gradcheck import gradcheck
 
-a = Tensor([1.5, -2.0], requires_grad=True)
-b = Tensor([0.5, 3.0], requires_grad=True)
+a = Tensor(
+    [1.5, -2.0],
+    requires_grad=True,
+)
+
+b = Tensor(
+    [0.5, 3.0],
+    requires_grad=True,
+)
 
 result = gradcheck(
     lambda x, y: (x * y).sum(),
-    [a, b]
+    [a, b],
 )
 
-print(result.passed)
-print(result.max_abs_error)
-print(result.max_rel_error)
+print(
+    result.passed
+)
+
+print(
+    result.max_abs_error
+)
+
+print(
+    result.max_rel_error
+)
 ```
 
-The numerical derivative is estimated using finite differences and compared against NanoNet's calculated gradient.
+The numerical derivative is calculated using central finite differences and
+compared against NanoNet's analytical gradient.
 
-This was especially useful for testing broadcasting, matrix multiplication, and activation functions.
+Gradient checks cover operations including:
+
+```text
+multiplication
+matrix multiplication
+vector matrix multiplication
+batched matrix multiplication
+small neural-network graphs
+unused differentiable inputs
+```
 
 ---
 
-## Architecture
+# Model Saving and Loading
 
-NanoNet is split into a few main pieces:
+Models can be saved using:
 
-| Component    | What it does                                                      |
-| ------------ | ----------------------------------------------------------------- |
-| `Tensor`     | Stores data and builds the computational graph                    |
-| Autograd     | Calculates gradients using reverse-mode automatic differentiation |
-| `Parameter`  | A Tensor that is meant to be trained                              |
-| `Module`     | Base class for layers and models                                  |
-| `Sequential` | Runs a collection of layers in order                              |
-| Losses       | Turn predictions into a scalar training objective                 |
-| Optimizers   | Update parameters using their gradients                           |
-| DataLoader   | Handles batching and shuffling                                    |
-| Trainer      | Runs the training and validation loops                            |
+```python
+model.save(
+    "checkpoints/mnist"
+)
+```
 
-More detailed explanations are available in:
+NanoNet automatically normalizes the path and creates:
 
-* `docs/architecture.md`
-* `docs/autodiff.md`
-* `docs/backpropagation.md`
-* `docs/optimizers.md`
+```text
+checkpoints/mnist.npz
+checkpoints/mnist.npz.meta.json
+```
+
+You can then restore it using:
+
+```python
+model.load(
+    "checkpoints/mnist"
+)
+```
+
+Using the suffix explicitly also works:
+
+```python
+model.save(
+    "checkpoints/mnist.npz"
+)
+```
+
+NanoNet stores parameters using NumPy `.npz` files and a JSON metadata sidecar.
+
+It does not rely on Python pickle for model parameters.
 
 ---
 
-## Backpropagation
+# Model Summary
 
-Suppose we have:
+NanoNet can print layer and parameter information:
 
-```text
-y = (x * w) + b
+```python
+model.summary(
+    input_shape=(784,),
+)
 ```
 
-The local derivatives are:
+Example structure:
 
 ```text
-∂y/∂x = w
-∂y/∂w = x
-∂y/∂b = 1
+Layer                        Output Shape         Parameters
+------------------------------------------------------------
+Dense(784,128)               ('?', 128)             ...
+ReLU                         ('?', 128)               0
+Dense(128,64)                ('?', 64)              ...
+ReLU                         ('?', 64)                0
+Dense(64,10)                 ('?', 10)              ...
+------------------------------------------------------------
+Total parameters:                                   ...
 ```
 
-When the loss sends a gradient backward through this operation, those local derivatives are multiplied by the incoming gradient using the chain rule.
-
-NanoNet repeats that process operation by operation until every trainable parameter has a gradient.
-
-Conceptually:
-
-```text
-Forward pass
-──────────────────────────────────►
-
-Input → Dense → ReLU → Dense → Loss
-
-        gradients flow backward
-
-Input ← Dense ← ReLU ← Dense ← Loss
-
-◄──────────────────────────────────
-Backward pass
-```
-
-There's a longer walkthrough in `docs/backpropagation.md`.
+Shape inference is performed without constructing an autograd graph.
 
 ---
 
-## Benchmarks
+# Benchmarks
 
-NanoNet isn't designed to beat PyTorch.
+NanoNet is not designed to outperform PyTorch.
 
-PyTorch has highly optimized C/C++ kernels, optimized BLAS libraries, sophisticated memory management, GPU support, and years of engineering behind it.
+PyTorch benefits from:
 
-NanoNet deliberately trades performance for readability.
+- optimized C/C++ kernels
+- optimized BLAS implementations
+- sophisticated memory management
+- GPU acceleration
+- years of production optimization
 
-The benchmark scripts make it possible to compare equivalent models:
+NanoNet intentionally prioritizes readability.
+
+The repository includes equivalent synthetic benchmark workloads for NanoNet
+and PyTorch.
+
+Run:
 
 ```bash
 python benchmarks/benchmark_nanonet.py
+```
+
+and, if PyTorch is installed:
+
+```bash
 python benchmarks/benchmark_pytorch.py
+```
+
+Then compare them using:
+
+```bash
 python benchmarks/compare.py
 ```
 
-The PyTorch benchmark is optional and requires PyTorch to be installed separately.
+Both benchmarks use:
 
-| Framework | Test Accuracy | Training Time |
-| --------- | ------------- | ------------- |
-| NanoNet   | run locally   | run locally   |
-| PyTorch   | run locally   | run locally   |
+- the same MLP architecture
+- the same number of samples
+- the same batch size
+- `float64`
+- random synthetic inputs
+- random class labels
+- graph-free inference
+- inference warm-up iterations
 
-I'd rather leave these values reproducible than put made-up benchmark numbers in the README.
+Because the labels are random, these benchmarks measure **performance rather
+than model quality**.
 
----
-
-## Project Structure
+The comparison reports:
 
 ```text
-nanonet/           # core framework
-examples/          # autodiff, XOR, regression, and MNIST examples
-benchmarks/        # NanoNet vs. optional PyTorch benchmarks
-tests/             # pytest test suite
-docs/              # architecture and math explanations
-scripts/           # utility scripts
+parameter count
+training time
+inference time per batch
 ```
+
+It intentionally does not treat accuracy on random labels as a meaningful
+metric.
 
 ---
 
-## Testing
+# Testing
 
-Run the full test suite with:
+Run the complete test suite with:
 
 ```bash
 pytest -v
 ```
 
-For coverage:
+Run coverage with:
 
 ```bash
-pytest --cov=nanonet --cov-report=term-missing
+pytest \
+    --cov=nanonet \
+    --cov-report=term-missing
 ```
 
-And linting:
+Run Ruff with:
 
 ```bash
 ruff check nanonet tests
 ```
 
-You can also run the examples directly:
+NanoNet's tests cover areas such as:
+
+- Tensor operations
+- reverse-mode autodiff
+- branching graphs
+- repeated backward calls
+- broadcasting
+- matrix multiplication
+- vector MatMul
+- batched MatMul
+- losses
+- class-label validation
+- optimizers
+- gradient checking
+- model serialization
+- training
+- graph-free evaluation
+
+---
+
+# Examples
+
+Several examples are included.
+
+## Automatic Differentiation
 
 ```bash
 python examples/autodiff_demo.py
+```
+
+## XOR
+
+```bash
 python examples/xor.py
+```
+
+## Regression
+
+```bash
 python examples/regression.py
 ```
 
-A lot of the core mathematical operations are tested against numerical finite-difference gradients rather than only checking output shapes.
+## MNIST
+
+```bash
+python examples/mnist_mlp.py
+```
 
 ---
 
-## Limitations
+# Project Structure
 
-NanoNet is intentionally fairly small.
-
-Right now:
-
-* it focuses on fully connected neural networks
-* computation runs on NumPy / CPU only
-* there are no convolutional layers yet
-* there is no CUDA backend
-* there is no multiprocessing DataLoader
-* computational graphs don't support `retain_graph`
-* performance is nowhere near a production ML framework
-
-Those tradeoffs are intentional. The main goal is to keep the implementation understandable.
+```text
+NanoNet/
+├── nanonet/
+│   ├── __init__.py
+│   ├── tensor.py
+│   ├── autograd.py
+│   ├── gradcheck.py
+│   ├── serialization.py
+│   ├── utils.py
+│   │
+│   ├── nn/
+│   ├── layers/
+│   ├── losses/
+│   ├── optimizers/
+│   ├── data/
+│   ├── metrics/
+│   └── training/
+│
+├── examples/
+│   ├── autodiff_demo.py
+│   ├── xor.py
+│   ├── regression.py
+│   └── mnist_mlp.py
+│
+├── benchmarks/
+│   ├── benchmark_nanonet.py
+│   ├── benchmark_pytorch.py
+│   └── compare.py
+│
+├── tests/
+├── docs/
+├── scripts/
+├── README.md
+├── LICENSE
+├── pyproject.toml
+└── .gitignore
+```
 
 ---
 
-## Roadmap
+# Architecture
 
-Some things I'd like to experiment with in the future:
+The main relationship between NanoNet's components is:
 
-* Conv2D and MaxPool2D
-* Batch normalization
-* learning-rate schedulers
-* more datasets and examples
-* an optional GPU backend
-* mixed-precision experiments
+```text
+Tensor
+  │
+  ▼
+Automatic Differentiation
+  │
+  ▼
+Parameter
+  │
+  ▼
+Module / Layer
+  │
+  ▼
+Sequential Model
+  │
+  ▼
+Loss
+  │
+  ▼
+Backward
+  │
+  ▼
+Optimizer
+```
 
-I'm trying to keep additions focused on things that are interesting to implement rather than turning NanoNet into a full PyTorch clone.
+Data and training utilities surround this core:
+
+```text
+Dataset
+   │
+   ▼
+DataLoader
+   │
+   ▼
+Trainer
+   │
+   ├──── Model
+   ├──── Loss
+   └──── Optimizer
+```
+
+More detailed explanations are available in:
+
+- [`docs/architecture.md`](docs/architecture.md)
+- [`docs/autodiff.md`](docs/autodiff.md)
+- [`docs/backpropagation.md`](docs/backpropagation.md)
+- [`docs/optimizers.md`](docs/optimizers.md)
 
 ---
 
-## License
+# Limitations
 
-NanoNet is **source-available**, not open source.
+NanoNet is intentionally small.
 
-You are welcome to view the source code, study how the framework works, and
-run an unmodified copy for personal, educational, research, or evaluation
-purposes.
+Current limitations include:
 
-Modification, redistribution, incorporation into other projects, commercial
-distribution, and representation of NanoNet or its source code as your own
-work are not permitted without prior written permission.
+- CPU / NumPy computation only
+- no CUDA backend
+- no convolutional layers
+- no pooling layers
+- no batch normalization
+- no multiprocessing DataLoader
+- no distributed training
+- no mixed-precision training
+- no explicit computational-graph freeing API
+
+The project currently focuses on fully connected neural networks and the
+mechanics behind their training.
+
+These limitations are deliberate.
+
+Adding fewer features with understandable implementations is more valuable to
+the project's goal than attempting to recreate all of PyTorch.
+
+---
+
+# Roadmap
+
+Possible future additions include:
+
+- Conv2D
+- MaxPool2D
+- BatchNorm
+- learning-rate schedulers
+- additional datasets
+- additional examples
+- optional GPU experiments
+- mixed-precision experiments
+
+The goal is to add features when they introduce an interesting implementation
+or mathematical concept rather than simply increasing the feature count.
+
+---
+
+# License
+
+NanoNet is **source-available, not open source**.
+
+The source code is publicly accessible for viewing, educational reference,
+and evaluation purposes. Public availability does not grant permission to
+copy, modify, redistribute, republish, sublicense, sell, or incorporate
+substantial portions of the project into another project without prior
+written permission.
 
 Copyright © 2026 Ariv Chaudhry. All rights reserved.
 
-See [`LICENSE`](LICENSE) for the complete terms.
+See [`LICENSE`](LICENSE) for the complete license terms.
