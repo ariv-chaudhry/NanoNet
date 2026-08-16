@@ -978,36 +978,60 @@ and, if PyTorch is installed:
 python benchmarks/benchmark_pytorch.py
 ```
 
-Then compare them using:
+Then compare them using multi-trial methodology:
 
 ```bash
-python benchmarks/compare.py
+python benchmarks/compare.py --samples 5000 --runs 5
 ```
 
-Both benchmarks use:
+Both frameworks are timed on **CPU** with `float64`. Because synthetic labels
+are random, these scripts measure **performance rather than model quality**.
 
-- the same MLP architecture
-- the same number of samples
-- the same batch size
-- `float64`
-- random synthetic inputs
-- random class labels
-- graph-free inference
-- inference warm-up iterations
+For mathematical validation and MNIST learning comparison, see
+[Empirical Evaluation](#empirical-evaluation) below.
 
-Because the labels are random, these benchmarks measure **performance rather
-than model quality**.
+---
 
-The comparison reports:
+# Empirical Evaluation
 
-```text
-parameter count
-training time
-inference time per batch
+NanoNet has been compared against PyTorch for:
+
+- forward-pass numerical agreement
+- loss agreement
+- gradient agreement
+- SGD update agreement
+- multi-trial training/inference runtime
+- workload scaling
+- matched MNIST learning performance
+
+Full methodology, environment metadata, interpretation, and limitations:
+**[docs/evaluation.md](docs/evaluation.md)**.
+
+### Snapshot results (measured, CPU, float64)
+
+| Evaluation | Result |
+|---|---:|
+| Forward max abs. error | 2.22e-16 |
+| Loss abs. error | 2.22e-16 |
+| Gradient max abs. error | 1.11e-16 |
+| Post-SGD parameter max error | 8.67e-19 |
+| NanoNet MNIST accuracy (5k/1k, 1 epoch, SGD) | 66.50% |
+| PyTorch MNIST accuracy (matched) | 66.50% |
+| Train slowdown @ 5k samples (mean of 5 runs) | ~3.1× |
+| Infer slowdown @ 256-batch (mean of 5 runs) | ~9.5× |
+
+Runtime values are machine-dependent (recorded on Windows 11 / Intel CPU;
+see JSON under `results/`).
+
+![NanoNet vs PyTorch runtime scaling](results/runtime_scaling.png)
+
+```bash
+pip install -e ".[benchmark]"
+python benchmarks/numerical_parity.py
+python benchmarks/scaling_benchmark.py --sizes 1000 5000 10000 --runs 5
+python benchmarks/mnist_comparison.py
+python benchmarks/run_evaluation.py --quick   # or --full
 ```
-
-It intentionally does not treat accuracy on random labels as a meaningful
-metric.
 
 ---
 

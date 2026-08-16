@@ -43,6 +43,11 @@ dev = [
 ]
 benchmark = [
     "torch>=2.0",
+    "matplotlib>=3.7",
+]
+evaluation = [
+    "torch>=2.0",
+    "matplotlib>=3.7",
 ]
 viz = [
     "matplotlib>=3.7",

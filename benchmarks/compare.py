@@ -1,160 +1,66 @@
-"""Compare NanoNet and PyTorch benchmark JSON outputs."""
+"""Compare NanoNet and PyTorch via multi-trial CPU runtime methodology."""
 
 from __future__ import annotations
 
 import argparse
-import json
-import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from benchmarks.utils import RESULTS_DIR, set_global_seeds  # noqa: E402
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description=(
-            "Run and compare NanoNet "
-            "vs PyTorch benchmarks."
-        )
+        description="Multi-trial NanoNet vs PyTorch CPU runtime comparison."
     )
-
-    parser.add_argument(
-        "--samples",
-        type=int,
-        default=5000,
-    )
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=3,
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=64,
-    )
-    parser.add_argument(
-        "--skip-run",
-        action="store_true",
-        help="Only compare existing JSON files.",
-    )
-
+    parser.add_argument("--samples", type=int, default=5000)
+    parser.add_argument("--epochs", type=int, default=1)
+    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--warmup", type=int, default=1)
+    parser.add_argument("--runs", type=int, default=5)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--out", type=Path, default=RESULTS_DIR / "runtime_comparison.json")
     args = parser.parse_args()
 
-    root = Path(__file__).resolve().parent
+    from benchmarks.scaling_benchmark import run_scaling
 
-    nn_out = (
-        root.parent
-        / "results"
-        / "benchmark_nanonet.json"
+    set_global_seeds(args.seed)
+    payload = run_scaling(
+        sizes=[args.samples],
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        warmup=args.warmup,
+        runs=args.runs,
+        seed=args.seed,
+        out=args.out,
+        plot=RESULTS_DIR / "runtime_comparison.png",
     )
 
-    pt_out = (
-        root.parent
-        / "results"
-        / "benchmark_pytorch.json"
-    )
-
-    if not args.skip_run:
-        subprocess.check_call(
-            [
-                sys.executable,
-                str(
-                    root
-                    / "benchmark_nanonet.py"
-                ),
-                "--samples",
-                str(args.samples),
-                "--epochs",
-                str(args.epochs),
-                "--batch-size",
-                str(args.batch_size),
-                "--out",
-                str(nn_out),
-            ]
-        )
-
-        try:
-            subprocess.check_call(
-                [
-                    sys.executable,
-                    str(
-                        root
-                        / "benchmark_pytorch.py"
-                    ),
-                    "--samples",
-                    str(args.samples),
-                    "--epochs",
-                    str(args.epochs),
-                    "--batch-size",
-                    str(args.batch_size),
-                    "--out",
-                    str(pt_out),
-                ]
-            )
-        except subprocess.CalledProcessError:
-            print(
-                "PyTorch benchmark failed "
-                "(is torch installed?). "
-                "NanoNet results were saved."
-            )
-            print(
-                nn_out.read_text(
-                    encoding="utf-8"
-                )
-            )
-            return
-
-    nn = json.loads(
-        nn_out.read_text(
-            encoding="utf-8"
-        )
-    )
-
-    pt = (
-        json.loads(
-            pt_out.read_text(
-                encoding="utf-8"
-            )
-        )
-        if pt_out.exists()
-        else None
-    )
-
+    row = payload["results"]["by_dataset_size"][0]
+    print("\n=== Runtime comparison (CPU, float64) ===")
+    print("device: CPU")
+    print("dtype: float64")
+    print(f"samples: {args.samples}  epochs: {args.epochs}  batch_size: {args.batch_size}")
+    print(f"warmup: {args.warmup}  measured_runs: {args.runs}\n")
+    print(f"{'Framework':<10} {'Train mean':>12} {'Train std':>10} {'Infer mean':>12}")
+    print("-" * 50)
     print(
-        "\n=== Benchmark comparison ==="
+        f"{'NanoNet':<10} {row['nanonet_train']['mean']:>11.4f}s "
+        f"{row['nanonet_train']['std']:>9.4f} "
+        f"{row['nanonet_infer']['mean']:>11.5f}s"
     )
     print(
-        "Synthetic random-label workload; "
-        "performance only, not model quality."
+        f"{'PyTorch':<10} {row['pytorch_train']['mean']:>11.4f}s "
+        f"{row['pytorch_train']['std']:>9.4f} "
+        f"{row['pytorch_infer']['mean']:>11.5f}s"
     )
     print(
-        "Both implementations use float64 "
-        "and disable graph recording for inference.\n"
+        f"\nTrain slowdown: {row['train_slowdown']:.1f}x  |  "
+        f"Infer slowdown: {row['infer_slowdown']:.1f}x"
     )
-
-    print(
-        f"{'Framework':<12} "
-        f"{'Params':>10} "
-        f"{'Train(s)':>10} "
-        f"{'Infer(s)':>10}"
-    )
-
-    print("-" * 46)
-
-    print(
-        f"{'NanoNet':<12} "
-        f"{nn['num_parameters']:>10} "
-        f"{nn['train_seconds']:>10.3f} "
-        f"{nn['inference_seconds_per_batch']:>10.5f}"
-    )
-
-    if pt:
-        print(
-            f"{'PyTorch':<12} "
-            f"{pt['num_parameters']:>10} "
-            f"{pt['train_seconds']:>10.3f} "
-            f"{pt['inference_seconds_per_batch']:>10.5f}"
-        )
+    print("\nPyTorch is expected to be faster; NanoNet prioritizes educational clarity.")
 
 
 if __name__ == "__main__":

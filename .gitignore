@@ -30,10 +30,18 @@ pip-wheel-metadata/
 *~
 
 /data/
-/results/
+/results/*
+!/results/.gitkeep
+!/results/numerical_parity.json
+!/results/runtime_scaling.json
+!/results/runtime_comparison.json
+!/results/mnist_comparison.json
+!/results/runtime_scaling.png
+!/results/mnist_comparison.png
 *.npz
 *.png
 !docs/**/*.png
+!results/*.png
 
 .DS_Store
 Thumbs.db

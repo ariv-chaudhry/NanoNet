@@ -1,0 +1,49 @@
+{
+  "experiment": "mnist_comparison",
+  "environment": {
+    "timestamp_utc": "2026-08-16T09:21:54.623035+00:00",
+    "python_version": "3.13.14",
+    "nanonet_version": "0.1.0",
+    "numpy_version": "2.4.2",
+    "os": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "machine": "AMD64",
+    "dtype": "float64",
+    "device": "CPU",
+    "seed": 0,
+    "pytorch_version": "2.13.0+cpu",
+    "architecture": "784 \u2192 128 \u2192 64 \u2192 10",
+    "optimizer": "SGD(lr=0.1)",
+    "loss": "CrossEntropyLoss(mean)"
+  },
+  "configuration": {
+    "train_samples": 5000,
+    "test_samples": 1000,
+    "epochs": 1,
+    "batch_size": 64,
+    "lr": 0.1,
+    "seed": 0,
+    "identical_init": true,
+    "identical_batch_order": true
+  },
+  "results": {
+    "nanonet": {
+      "test_accuracy": 0.665,
+      "train_seconds": 6.02821750001749,
+      "eval_seconds": 0.026635400019586086,
+      "epoch_losses": [
+        0.9144894893969193
+      ]
+    },
+    "pytorch": {
+      "test_accuracy": 0.665,
+      "train_seconds": 1.1409088000073098,
+      "eval_seconds": 0.01621899998281151,
+      "epoch_losses": [
+        0.9144894893969194
+      ]
+    },
+    "accuracy_difference": 0.0,
+    "final_loss_difference": 1.1102230246251565e-16
+  }
+}
