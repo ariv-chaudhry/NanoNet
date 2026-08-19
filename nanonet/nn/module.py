@@ -83,6 +83,17 @@ class Module:
         for module in self._modules.values():
             yield from module.modules()
 
+    def named_modules(self, prefix: str = "") -> list[tuple[str, Module]]:
+        """Return ``(hierarchical_name, module)`` for this module and descendants.
+
+        The root entry uses ``prefix`` (empty string by default).
+        """
+        result: list[tuple[str, Module]] = [(prefix, self)]
+        for name, module in self._modules.items():
+            full = f"{prefix}.{name}" if prefix else name
+            result.extend(module.named_modules(full))
+        return result
+
     def train(self, mode: bool = True) -> Module:
         """Set training mode (affects Dropout and similar layers)."""
         self.training = mode
@@ -258,3 +269,23 @@ class Module:
         from nanonet.training.trainer import Trainer
 
         return Trainer(self).evaluate(*args, **kwargs)
+
+    def inspect(
+        self,
+        x: Any | None = None,
+        *,
+        verbose: bool = True,
+    ) -> Any:
+        """Inspect model structure, and optionally runtime shapes / activations.
+
+        Args:
+            x: Optional sample input. When provided, runs a ``no_grad`` forward
+                pass to capture per-layer shapes and activation statistics.
+            verbose: If True (default), print a formatted report to stdout.
+
+        Returns:
+            A :class:`~nanonet.inspection.ModelInspectionReport`.
+        """
+        from nanonet.inspection import inspect_model
+
+        return inspect_model(self, x, verbose=verbose)

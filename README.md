@@ -949,6 +949,50 @@ Shape inference is performed without constructing an autograd graph.
 
 ---
 
+# Model Inspection
+
+NanoNet includes built-in inspection tools for exploring model structure,
+parameter counts, tensor shapes, activation statistics, and gradients:
+
+```python
+report = model.inspect()
+```
+
+With a sample batch, NanoNet also reports per-layer shapes and activations:
+
+```python
+report = model.inspect(x)
+```
+
+Use `verbose=False` to collect the structured report without printing.
+
+Example (structural):
+
+```text
+NanoNet Model Inspector
+------------------------------------------------------------------------
+
+Model: Sequential
+Layers: 3
+Parameters: 101,770
+Trainable: 101,770
+Parameter Memory: 794.30 KB
+
+Layers
+------------------------------------------------------------------------
+Name                     Type               Parameters
+------------------------------------------------------------------------
+0                        Dense                 100,480
+1                        ReLU                        0
+2                        Dense                   1,290
+------------------------------------------------------------------------
+Total                                          101,770
+```
+
+See `examples/model_inspection.py`.
+
+---
+
 # Benchmarks
 
 NanoNet is not designed to outperform PyTorch.
@@ -1103,6 +1147,12 @@ python examples/regression.py
 
 ```bash
 python examples/mnist_mlp.py
+```
+
+## Model Inspection
+
+```bash
+python examples/model_inspection.py
 ```
 
 ---
