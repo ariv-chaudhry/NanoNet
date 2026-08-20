@@ -1051,6 +1051,7 @@ contribute to a result:
 model.inspect()  -> model structure and statistics
 model.trace(x)   -> actual module execution path
 tensor.graph()   -> underlying autograd computation graph
+model.diagnose() -> potential training and numerical issues
 ```
 
 ```python
@@ -1099,6 +1100,73 @@ Root:          ...
 ```
 
 See `examples/computation_graph.py`.
+
+---
+
+# Model Diagnostics
+
+NanoNet can also highlight potential numerical and training issues with
+evidence-backed findings:
+
+```text
+model.inspect()  -> model structure and statistics
+model.trace(x)   -> runtime execution path
+tensor.graph()   -> autograd computation graph
+model.diagnose() -> potential training and numerical issues
+```
+
+```python
+report = model.diagnose(x)
+
+for finding in report.findings:
+    if finding.severity == "critical":
+        print(finding.code, finding.message)
+```
+
+Without input, NanoNet checks parameters and any gradients already present.
+With a sample batch, it also runs one forward pass under ``no_grad`` to
+inspect activations (dead ReLU, saturation, non-finite outputs, and similar).
+
+``diagnose()`` never calls ``backward()``. Gradient findings use gradients that
+already exist on parameters.
+
+NaN and infinity checks are definitive. Findings such as vanishing gradients,
+dead activations, or saturation are **threshold-based indicators** intended to
+guide debugging rather than prove a specific root cause.
+
+Default heuristic thresholds (see ``DiagnosticThresholds``) include:
+
+| Check | Default |
+| --- | --- |
+| Exploding gradient L2 norm | `1e3` |
+| Vanishing gradient L2 norm | `1e-8` |
+| Layer gradient imbalance ratio | `100x` |
+| Dead ReLU zero fraction | `95%` |
+| Sigmoid/Tanh saturation fraction | `95%` within `0.01` of bounds |
+| Parameter / activation abs max | `1e6` |
+
+Example:
+
+```text
+NanoNet Diagnostics
+------------------------------------------------------------------------
+
+Model: Sequential
+Checks: 13
+Critical: 0
+Warnings: 1
+Info: 0
+
+Activation Diagnostics
+------------------------------------------------------------------------
+[WARN] RELU_DEAD
+  Target: 1
+  ReLU '1' has a very high fraction of zero activations.
+  Observed: 1 (threshold 0.95)
+  ...
+```
+
+See `examples/model_diagnostics.py`.
 
 ---
 
@@ -1274,6 +1342,12 @@ python examples/execution_trace.py
 
 ```bash
 python examples/computation_graph.py
+```
+
+## Model Diagnostics
+
+```bash
+python examples/model_diagnostics.py
 ```
 
 ---

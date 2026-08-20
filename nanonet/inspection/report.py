@@ -20,6 +20,11 @@ class ActivationStats:
     max: float | None = None
     zero_fraction: float | None = None  # in [0, 1]
     available: bool = False
+    nan_count: int = 0
+    inf_count: int = 0
+    abs_max: float | None = None
+    element_count: int = 0
+    saturation_fraction: float | None = None  # set for Sigmoid/Tanh diagnostics
 
 
 @dataclass
@@ -33,6 +38,70 @@ class GradientStats:
     std: float | None = None
     min: float | None = None
     max: float | None = None
+
+
+@dataclass
+class DiagnosticFinding:
+    """One evidence-backed diagnostic result."""
+
+    severity: str  # "critical" | "warning" | "info"
+    category: str  # "parameters" | "gradients" | "activations" | "general"
+    code: str
+    message: str
+    target: str | None = None
+    observed_value: float | None = None
+    threshold: float | None = None
+    explanation: str | None = None
+    recommendation: str | None = None
+
+
+@dataclass
+class RuntimeActivationRecord:
+    """One leaf-module output observed during a diagnostic forward pass."""
+
+    name: str
+    module_type: str
+    call_index: int
+    stats: ActivationStats
+    display_name: str = ""  # includes call suffix when shared
+
+    def __post_init__(self) -> None:
+        if not self.display_name:
+            if self.call_index > 1:
+                self.display_name = f"{self.name} [call {self.call_index}]"
+            else:
+                self.display_name = self.name
+
+
+@dataclass
+class DiagnosticsReport:
+    """Structured result of ``model.diagnose()`` / ``model.diagnose(x)``."""
+
+    model_name: str
+    findings: list[DiagnosticFinding]
+    checks_run: int
+    warnings: int
+    critical: int
+    info: int
+    activations_analyzed: bool = False
+    gradients_available: bool = False
+
+    def __str__(self) -> str:
+        from nanonet.inspection.formatter import format_diagnostics_report
+
+        return format_diagnostics_report(self)
+
+    @property
+    def has_critical(self) -> bool:
+        return self.critical > 0
+
+    @property
+    def has_warnings(self) -> bool:
+        return self.warnings > 0
+
+    @property
+    def ok(self) -> bool:
+        return self.critical == 0 and self.warnings == 0
 
 
 @dataclass

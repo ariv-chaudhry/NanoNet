@@ -15,6 +15,7 @@ from nanonet.inspection.report import (
     ModelInspectionReport,
 )
 from nanonet.inspection.utils import (
+    activation_stats,
     count_parameters,
     first_arg,
     leaf_modules,
@@ -45,19 +46,7 @@ def iter_named_modules(
 
 
 def _activation_stats(value: Any) -> ActivationStats:
-    if not isinstance(value, Tensor):
-        return ActivationStats(available=False)
-    arr = np.asarray(value.data)
-    if arr.size == 0:
-        return ActivationStats(available=False)
-    return ActivationStats(
-        mean=float(np.mean(arr)),
-        std=float(np.std(arr)),
-        min=float(np.min(arr)),
-        max=float(np.max(arr)),
-        zero_fraction=float(np.mean(arr == 0)),
-        available=True,
-    )
+    return activation_stats(value)
 
 
 def _gradient_stats(

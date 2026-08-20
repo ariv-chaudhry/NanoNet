@@ -315,3 +315,32 @@ class Module:
         from nanonet.inspection import trace_model
 
         return trace_model(self, x, verbose=verbose)
+
+    def diagnose(
+        self,
+        x: Any | None = None,
+        *,
+        verbose: bool = True,
+        thresholds: Any | None = None,
+    ) -> Any:
+        """Diagnose potential numerical and training issues in this module.
+
+        Without ``x``, analyzes parameters and any gradients already present.
+        With ``x``, also runs one ``no_grad`` forward pass to inspect activations.
+
+        Does **not** call ``backward()``. Gradient findings use currently stored
+        gradients only. Finite checks (NaN/Inf) are definitive; magnitude
+        checks (vanishing/exploding gradients, dead ReLU, saturation) are
+        threshold-based heuristics.
+
+        Args:
+            x: Optional sample input for activation diagnostics.
+            verbose: If True (default), print the formatted report to stdout.
+            thresholds: Optional :class:`~nanonet.inspection.DiagnosticThresholds`.
+
+        Returns:
+            A :class:`~nanonet.inspection.DiagnosticsReport`.
+        """
+        from nanonet.inspection import diagnose_model
+
+        return diagnose_model(self, x, verbose=verbose, thresholds=thresholds)

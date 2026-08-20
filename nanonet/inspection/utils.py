@@ -6,6 +6,7 @@ from typing import Any
 
 import numpy as np
 
+from nanonet.inspection.report import ActivationStats
 from nanonet.nn.module import Module
 from nanonet.nn.parameter import Parameter
 from nanonet.tensor import Tensor
@@ -133,3 +134,52 @@ def format_duration(seconds: float) -> str:
     if seconds < 1.0:
         return f"{seconds * 1e3:.3f} ms"
     return f"{seconds:.4f} s"
+
+
+def activation_stats(value: Any) -> ActivationStats:
+    """Compute activation statistics for a Tensor (metadata only, no copy retained)."""
+    if not isinstance(value, Tensor):
+        return ActivationStats(available=False)
+    arr = np.asarray(value.data)
+    size = int(arr.size)
+    if size == 0:
+        return ActivationStats(available=False, element_count=0)
+
+    nan_mask = np.isnan(arr)
+    inf_mask = np.isinf(arr)
+    nan_count = int(np.count_nonzero(nan_mask))
+    inf_count = int(np.count_nonzero(inf_mask))
+    finite = arr[np.isfinite(arr)]
+
+    if finite.size == 0:
+        return ActivationStats(
+            available=True,
+            nan_count=nan_count,
+            inf_count=inf_count,
+            element_count=size,
+            zero_fraction=None,
+            abs_max=None,
+        )
+
+    return ActivationStats(
+        mean=float(np.mean(finite)),
+        std=float(np.std(finite)),
+        min=float(np.min(finite)),
+        max=float(np.max(finite)),
+        zero_fraction=float(np.mean(arr == 0)),
+        available=True,
+        nan_count=nan_count,
+        inf_count=inf_count,
+        abs_max=float(np.max(np.abs(finite))),
+        element_count=size,
+    )
+
+
+def gradient_norm(grad: Any) -> float | None:
+    """L2 norm of a gradient array, or ``None`` if unavailable."""
+    if grad is None:
+        return None
+    arr = np.asarray(grad, dtype=np.float64)
+    if arr.size == 0:
+        return None
+    return float(np.linalg.norm(arr))

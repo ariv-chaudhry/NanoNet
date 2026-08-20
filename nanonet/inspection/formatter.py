@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from nanonet.inspection.report import (
     ComputationGraph,
+    DiagnosticFinding,
+    DiagnosticsReport,
     GraphTensorNode,
     ModelInspectionReport,
     ModelTrace,
@@ -297,3 +299,95 @@ def _node_tags(node: GraphTensorNode) -> str:
     if not tags:
         return ""
     return " [" + ", ".join(tags) + "]"
+
+
+def format_diagnostics_report(report: DiagnosticsReport) -> str:
+    """Render a diagnostics report as terminal-safe plain text."""
+    lines: list[str] = []
+    width = 72
+    rule = "-" * width
+
+    lines.append("NanoNet Diagnostics")
+    lines.append(rule)
+    lines.append("")
+    lines.append(f"Model: {report.model_name}")
+    lines.append(f"Checks: {report.checks_run}")
+    lines.append(f"Critical: {report.critical}")
+    lines.append(f"Warnings: {report.warnings}")
+    lines.append(f"Info: {report.info}")
+    lines.append("")
+
+    issue_findings = [f for f in report.findings if f.severity in {"critical", "warning"}]
+    info_findings = [f for f in report.findings if f.severity == "info"]
+
+    if not issue_findings:
+        lines.append("No critical or warning issues detected.")
+        lines.append("")
+        lines.append("Status")
+        lines.append(rule)
+        lines.append("[ok] Parameters scanned for NaN / Inf / extreme magnitude")
+        if report.gradients_available:
+            lines.append("[ok] Available gradients are finite within configured checks")
+        else:
+            lines.append("[info] Gradient diagnostics unavailable (no gradients present)")
+        if report.activations_analyzed:
+            lines.append("[ok] Observed activations scanned for NaN / Inf / dead ReLU")
+        else:
+            lines.append("[info] Activation diagnostics skipped (no sample input)")
+        lines.append("")
+    else:
+        by_cat: dict[str, list[DiagnosticFinding]] = {}
+        for finding in issue_findings:
+            by_cat.setdefault(finding.category, []).append(finding)
+
+        for category in ("parameters", "gradients", "activations", "general"):
+            items = by_cat.get(category)
+            if not items:
+                continue
+            title = {
+                "parameters": "Parameter Diagnostics",
+                "gradients": "Gradient Diagnostics",
+                "activations": "Activation Diagnostics",
+                "general": "Other Diagnostics",
+            }[category]
+            lines.append(title)
+            lines.append(rule)
+            for finding in items:
+                mark = "CRIT" if finding.severity == "critical" else "WARN"
+                lines.append(f"[{mark}] {finding.code}")
+                if finding.target:
+                    lines.append(f"  Target: {finding.target}")
+                lines.append(f"  {finding.message}")
+                if finding.observed_value is not None:
+                    thr_s = (
+                        f"  (threshold {finding.threshold:g})"
+                        if finding.threshold is not None
+                        else ""
+                    )
+                    lines.append(f"  Observed: {finding.observed_value:.6g}{thr_s}")
+                if finding.explanation:
+                    lines.append(f"  {finding.explanation}")
+                if finding.recommendation:
+                    lines.append(f"  Recommendation: {finding.recommendation}")
+                lines.append("")
+
+        lines.append("Most Significant Findings")
+        lines.append(rule)
+        for i, finding in enumerate(issue_findings[:5], start=1):
+            tgt = f" ({finding.target})" if finding.target else ""
+            lines.append(f"{i}. [{finding.severity}] {finding.code}{tgt}")
+        lines.append("")
+        lines.append(
+            f"Summary: {len(issue_findings)} potential issue(s) detected "
+            f"({report.critical} critical, {report.warnings} warning)."
+        )
+        lines.append("")
+
+    if info_findings and issue_findings:
+        lines.append("Notes")
+        lines.append(rule)
+        for finding in info_findings:
+            lines.append(f"[info] {finding.code}: {finding.message}")
+        lines.append("")
+
+    return "\n".join(lines)
