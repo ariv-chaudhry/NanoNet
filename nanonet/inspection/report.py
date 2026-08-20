@@ -126,3 +126,61 @@ class ModelTrace:
         from nanonet.inspection.formatter import format_execution_trace
 
         return format_execution_trace(self)
+
+
+@dataclass
+class GraphTensorNode:
+    """Metadata for a Tensor in a computation graph (no array data retained)."""
+
+    id: str
+    shape: tuple[int, ...] | None
+    dtype: str | None
+    requires_grad: bool
+    has_grad: bool
+    grad_shape: tuple[int, ...] | None
+    is_leaf: bool
+    is_parameter: bool
+    is_root: bool = False
+
+
+@dataclass
+class GraphOperationNode:
+    """A differentiable Function that produced a tensor."""
+
+    id: str
+    name: str
+
+
+@dataclass
+class GraphEdge:
+    """Directed edge ``source -> target`` (forward dependency direction)."""
+
+    source: str
+    target: str
+
+
+@dataclass
+class ComputationGraph:
+    """Structured autograd graph rooted at the tensor that called ``.graph()``.
+
+    Ordering is leaves → root (topological). Depth is the longest path counted
+    in *operations* from any leaf to the root (0 for a single-node leaf graph).
+    Nodes store metadata only — not Tensor/array copies.
+    """
+
+    root_id: str
+    tensors: list[GraphTensorNode]
+    operations: list[GraphOperationNode]
+    edges: list[GraphEdge]
+    depth: int
+    leaf_count: int
+    parameter_count: int
+
+    def __str__(self) -> str:
+        from nanonet.inspection.formatter import format_computation_graph
+
+        return format_computation_graph(self)
+
+    @property
+    def tensor_nodes(self) -> list[GraphTensorNode]:
+        return self.tensors

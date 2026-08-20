@@ -1041,6 +1041,67 @@ See `examples/execution_trace.py`.
 
 ---
 
+# Computation Graph Inspection
+
+NanoNet exposes the autograd graph behind any differentiable Tensor, making it
+possible to inspect how operations, parameters, and intermediate tensors
+contribute to a result:
+
+```text
+model.inspect()  -> model structure and statistics
+model.trace(x)   -> actual module execution path
+tensor.graph()   -> underlying autograd computation graph
+```
+
+```python
+pred = model(x)
+loss = criterion(pred, target)
+
+loss.graph()
+```
+
+Use `verbose=False` to collect the structured graph without printing:
+
+```python
+graph = loss.graph(verbose=False)
+print(graph.root_id, graph.depth)
+for op in graph.operations:
+    print(op.id, op.name)
+```
+
+Unlike `trace()`, which records modules, `graph()` shows lower-level autograd
+operations (for example MatMul and Add inside a Dense layer).
+
+Example:
+
+```text
+NanoNet Computation Graph
+------------------------------------------------------------------------
+
+T0 --+
+     +- MatMul -> T1
+P0 --+
+
+T1 --+
+     +- Add -> T2
+P1 --+
+
+T2 -> ReLU -> T3
+...
+
+Graph Summary
+------------------------------------------------------------------------
+Tensor nodes:  ...
+Operations:    ...
+Depth:         ...
+Parameters:    ...
+Root:          ...
+```
+
+See `examples/computation_graph.py`.
+
+---
+
 # Benchmarks
 
 NanoNet is not designed to outperform PyTorch.
@@ -1207,6 +1268,12 @@ python examples/model_inspection.py
 
 ```bash
 python examples/execution_trace.py
+```
+
+## Computation Graph Inspection
+
+```bash
+python examples/computation_graph.py
 ```
 
 ---

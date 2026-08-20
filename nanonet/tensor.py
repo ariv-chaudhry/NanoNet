@@ -56,6 +56,16 @@ class Function:
         self.saved_tensors: tuple[Tensor, ...] = ()
         self.needs_input_grad: list[bool] = []
 
+    @property
+    def op_name(self) -> str:
+        """Human-readable operation label for graph inspection."""
+        name = type(self).__name__
+        if name.endswith("Function"):
+            return name[: -len("Function")] or name
+        if name.endswith("Fn"):
+            return name[: -len("Fn")] or name
+        return name
+
     def save_for_backward(self, *tensors: Tensor) -> None:
         self.saved_tensors = tensors
 
@@ -454,6 +464,27 @@ class Tensor:
     def detach(self) -> Tensor:
         """Return an independent copy of this tensor detached from the graph."""
         return Tensor(self.data.copy(), requires_grad=False)
+
+    def graph(self, *, verbose: bool = True) -> Any:
+        """Inspect the autograd computation graph ending at this tensor.
+
+        Traverses ``_parents`` / ``_grad_fn`` from this tensor (the root) and
+        builds a structured :class:`~nanonet.inspection.ComputationGraph`.
+        Does not call ``backward()``, clear gradients, or mutate the graph.
+
+        Gradient presence (``has_grad``) reflects whatever is already stored
+        on tensors — call ``backward()`` first if you want post-backward
+        gradient metadata.
+
+        Args:
+            verbose: If True (default), print the formatted graph to stdout.
+
+        Returns:
+            A :class:`~nanonet.inspection.ComputationGraph`.
+        """
+        from nanonet.inspection.graph import inspect_computation_graph
+
+        return inspect_computation_graph(self, verbose=verbose)
 
     # ------------------------------------------------------------------
     # Backward

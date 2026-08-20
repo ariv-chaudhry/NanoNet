@@ -1,8 +1,14 @@
-"""Plain-text formatting for inspection reports and execution traces."""
+"""Plain-text formatting for inspection reports, traces, and graphs."""
 
 from __future__ import annotations
 
-from nanonet.inspection.report import ModelInspectionReport, ModelTrace, TensorTraceInfo
+from nanonet.inspection.report import (
+    ComputationGraph,
+    GraphTensorNode,
+    ModelInspectionReport,
+    ModelTrace,
+    TensorTraceInfo,
+)
 from nanonet.inspection.utils import format_duration
 
 
@@ -210,3 +216,84 @@ def _fmt_float(value: float | None) -> str:
     if value is None:
         return "n/a"
     return f"{value:.4f}"
+
+
+def format_computation_graph(graph: ComputationGraph) -> str:
+    """Render an autograd computation graph as terminal-safe plain text.
+
+    Uses an edge-oriented layout for DAG correctness (shared nodes appear once).
+    """
+    lines: list[str] = []
+    width = 72
+    rule = "-" * width
+
+    tensors = {n.id: n for n in graph.tensors}
+
+    lines.append("NanoNet Computation Graph")
+    lines.append(rule)
+    lines.append("")
+
+    for op in graph.operations:
+        parents = [e.source for e in graph.edges if e.target == op.id]
+        results = [e.target for e in graph.edges if e.source == op.id]
+        if not results:
+            continue
+        result = results[0]
+
+        if len(parents) == 1:
+            lines.append(f"{parents[0]} -> {op.name} -> {result}")
+        elif len(parents) == 2:
+            lines.append(f"{parents[0]} --+")
+            lines.append(f"     +- {op.name} -> {result}")
+            lines.append(f"{parents[1]} --+")
+        else:
+            for p in parents:
+                lines.append(f"{p}")
+            lines.append(f"  -> {op.name} -> {result}")
+        lines.append("")
+
+    if not graph.operations:
+        root = tensors[graph.root_id]
+        tags = _node_tags(root)
+        lines.append(f"{root.id}{tags}")
+        lines.append(
+            f"  shape={format_shape(root.shape)} dtype={root.dtype} "
+            f"requires_grad={root.requires_grad} grad={'yes' if root.has_grad else 'no'}"
+        )
+        lines.append("")
+    else:
+        lines.append("Tensors")
+        lines.append(rule)
+        for node in graph.tensors:
+            tags = _node_tags(node)
+            lines.append(f"{node.id}{tags}")
+            lines.append(
+                f"  shape={format_shape(node.shape)} dtype={node.dtype} "
+                f"requires_grad={node.requires_grad} grad={'yes' if node.has_grad else 'no'}"
+            )
+        lines.append("")
+
+    lines.append("Graph Summary")
+    lines.append(rule)
+    lines.append(f"Tensor nodes:  {len(graph.tensors)}")
+    lines.append(f"Operations:    {len(graph.operations)}")
+    lines.append(f"Edges:         {len(graph.edges)}")
+    lines.append(f"Depth:         {graph.depth}")
+    lines.append(f"Leaves:        {graph.leaf_count}")
+    lines.append(f"Parameters:    {graph.parameter_count}")
+    lines.append(f"Root:          {graph.root_id}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _node_tags(node: GraphTensorNode) -> str:
+    tags: list[str] = []
+    if node.is_root:
+        tags.append("ROOT")
+    if node.is_leaf:
+        tags.append("LEAF")
+    if node.is_parameter:
+        tags.append("PARAMETER")
+    if not tags:
+        return ""
+    return " [" + ", ".join(tags) + "]"
