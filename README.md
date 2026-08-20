@@ -993,6 +993,54 @@ See `examples/model_inspection.py`.
 
 ---
 
+# Execution Tracing
+
+`inspect()` summarizes a model. `trace()` records the **runtime execution path**
+for a specific input:
+
+```python
+trace = model.trace(x)
+```
+
+```python
+trace = model.trace(x, verbose=False)
+for step in trace.steps:
+    print(step.module_name, step.inputs[0].trace_id, step.outputs[0].shape)
+```
+
+```text
+inspect()  -> model structure, parameters, optional activation stats
+trace()    -> chronological module execution for one forward pass
+```
+
+Example:
+
+```text
+NanoNet Execution Trace
+------------------------------------------------------------------------
+
+Model: Sequential
+
+Input
+  T0   shape=(2, 4) dtype=float64 requires_grad=False
+
+Step 1 - 0 | Dense
+...
+Input
+  T0 (2, 4)
+Output
+  T1 (2, 8)
+Parameters: 40
+Time: 0.094 ms
+```
+
+Trace timings include instrumentation overhead and are for **debugging /
+observability**, not benchmarking (use `benchmarks/` for performance work).
+
+See `examples/execution_trace.py`.
+
+---
+
 # Benchmarks
 
 NanoNet is not designed to outperform PyTorch.
@@ -1153,6 +1201,12 @@ python examples/mnist_mlp.py
 
 ```bash
 python examples/model_inspection.py
+```
+
+## Execution Tracing
+
+```bash
+python examples/execution_trace.py
 ```
 
 ---

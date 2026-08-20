@@ -14,9 +14,23 @@ from nanonet.inspection.report import (
     LayerInspection,
     ModelInspectionReport,
 )
+from nanonet.inspection.utils import (
+    count_parameters,
+    first_arg,
+    leaf_modules,
+    parameter_memory_bytes,
+    shape_of,
+)
 from nanonet.nn.module import Module
 from nanonet.nn.parameter import Parameter
 from nanonet.tensor import Tensor, no_grad
+
+# Re-export for backward-compatible imports from inspector.
+__all__ = [
+    "inspect_model",
+    "leaf_modules",
+    "iter_named_modules",
+]
 
 
 def iter_named_modules(
@@ -25,67 +39,9 @@ def iter_named_modules(
     *,
     include_root: bool = True,
 ) -> list[tuple[str, Module]]:
-    """Return ``(hierarchical_name, module)`` for ``module`` and descendants."""
-    result: list[tuple[str, Module]] = []
-    if include_root:
-        result.append((prefix, module))
-    for name, child in module._modules.items():
-        full = f"{prefix}.{name}" if prefix else name
-        result.extend(iter_named_modules(child, full, include_root=True))
-    return result
+    from nanonet.inspection.utils import iter_named_modules as _iter
 
-
-def leaf_modules(module: Module) -> list[tuple[str, Module]]:
-    """Return modules with no registered children, with hierarchical names.
-
-    If ``module`` itself has no children (e.g. a bare ``Dense``), it is returned
-    as a single leaf named after its class.
-    """
-    if not module._modules:
-        return [(type(module).__name__, module)]
-
-    leaves: list[tuple[str, Module]] = []
-    for name, child in module._modules.items():
-        leaves.extend(_leaf_modules_from(child, name))
-    return leaves
-
-
-def _leaf_modules_from(module: Module, prefix: str) -> list[tuple[str, Module]]:
-    if not module._modules:
-        return [(prefix, module)]
-    leaves: list[tuple[str, Module]] = []
-    for name, child in module._modules.items():
-        full = f"{prefix}.{name}" if prefix else name
-        leaves.extend(_leaf_modules_from(child, full))
-    return leaves
-
-
-def _count_params(module: Module) -> tuple[int, int]:
-    total = 0
-    trainable = 0
-    seen: set[int] = set()
-    for param in module.parameters():
-        pid = id(param)
-        if pid in seen:
-            continue
-        seen.add(pid)
-        n = int(param.size)
-        total += n
-        if param.requires_grad:
-            trainable += n
-    return total, trainable
-
-
-def _parameter_memory_bytes(module: Module) -> int:
-    total = 0
-    seen: set[int] = set()
-    for param in module.parameters():
-        pid = id(param)
-        if pid in seen:
-            continue
-        seen.add(pid)
-        total += int(param.data.nbytes)
-    return total
+    return _iter(module, prefix, include_root=include_root)
 
 
 def _activation_stats(value: Any) -> ActivationStats:
@@ -102,14 +58,6 @@ def _activation_stats(value: Any) -> ActivationStats:
         zero_fraction=float(np.mean(arr == 0)),
         available=True,
     )
-
-
-def _shape_of(value: Any) -> tuple[int, ...] | None:
-    if isinstance(value, Tensor):
-        return tuple(value.shape)
-    if isinstance(value, np.ndarray):
-        return tuple(value.shape)
-    return None
 
 
 def _gradient_stats(
@@ -137,14 +85,6 @@ def _gradient_stats(
     return rows, any_grad
 
 
-def _first_tensor_arg(args: tuple[Any, ...], kwargs: dict[str, Any]) -> Any:
-    if args:
-        return args[0]
-    if kwargs:
-        return next(iter(kwargs.values()))
-    return None
-
-
 def _run_instrumented_forward(
     model: Module,
     leaves: list[tuple[str, Module]],
@@ -165,13 +105,13 @@ def _run_instrumented_forward(
             original: Callable[..., Any],
         ) -> Callable[..., Any]:
             def wrapped(*args: Any, **kwargs: Any) -> Any:
-                inp = _first_tensor_arg(args, kwargs)
+                inp = first_arg(args, kwargs)
                 out = original(*args, **kwargs)
                 records[layer_name] = {
                     "input": inp,
                     "output": out,
-                    "input_shape": _shape_of(inp),
-                    "output_shape": _shape_of(out),
+                    "input_shape": shape_of(inp),
+                    "output_shape": shape_of(out),
                     "activation": _activation_stats(out),
                 }
                 return out
@@ -219,7 +159,7 @@ def inspect_model(
 
     layers: list[LayerInspection] = []
     for name, mod in leaves:
-        total, trainable = _count_params(mod)
+        total, trainable = count_parameters(mod)
         param_names = [n for n, _ in mod.named_parameters()]
         layers.append(
             LayerInspection(
@@ -231,7 +171,7 @@ def inspect_model(
             )
         )
 
-    total_params, trainable_params = _count_params(model)
+    total_params, trainable_params = count_parameters(model)
     report = ModelInspectionReport(
         model_name=type(model).__name__,
         model_type=type(model).__name__,
@@ -239,7 +179,7 @@ def inspect_model(
         total_parameters=total_params,
         trainable_parameters=trainable_params,
         non_trainable_parameters=total_params - trainable_params,
-        estimated_parameter_memory_bytes=_parameter_memory_bytes(model),
+        estimated_parameter_memory_bytes=parameter_memory_bytes(model),
     )
 
     grads, grads_available = _gradient_stats(model.named_parameters())
@@ -257,7 +197,7 @@ def inspect_model(
         finally:
             model.train(was_training)
 
-        report.output_shape = _shape_of(output)
+        report.output_shape = shape_of(output)
         report.runtime_captured = True
 
         for layer in report.layers:

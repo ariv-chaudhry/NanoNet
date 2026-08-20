@@ -77,3 +77,52 @@ class ModelInspectionReport:
     @property
     def layer_count(self) -> int:
         return len(self.layers)
+
+
+@dataclass
+class TensorTraceInfo:
+    """Trace-local identity and metadata for a Tensor observed during tracing."""
+
+    trace_id: str
+    shape: tuple[int, ...] | None
+    dtype: str | None
+    requires_grad: bool | None
+    object_id: int | None = None
+
+
+@dataclass
+class TraceStep:
+    """One chronological module execution event during a forward pass."""
+
+    index: int
+    module_name: str
+    module_type: str
+    inputs: list[TensorTraceInfo]
+    outputs: list[TensorTraceInfo]
+    parameter_count: int
+    duration_seconds: float
+    call_index: int = 1  # invocation number for this module name within the trace
+    module_object_id: int | None = None
+
+
+@dataclass
+class ModelTrace:
+    """Structured result of ``model.trace(x)``.
+
+    ``output`` retains the forward-pass result so autograd can continue from it.
+    Timing fields include instrumentation overhead and are for debugging only.
+    """
+
+    model_name: str
+    model_type: str
+    steps: list[TraceStep]
+    inputs: list[TensorTraceInfo]
+    outputs: list[TensorTraceInfo]
+    forward_duration_seconds: float
+    traced_duration_seconds: float
+    output: Any = None
+
+    def __str__(self) -> str:
+        from nanonet.inspection.formatter import format_execution_trace
+
+        return format_execution_trace(self)

@@ -289,3 +289,29 @@ class Module:
         from nanonet.inspection import inspect_model
 
         return inspect_model(self, x, verbose=verbose)
+
+    def trace(
+        self,
+        x: Any,
+        *,
+        verbose: bool = True,
+    ) -> Any:
+        """Trace a forward pass through this module.
+
+        Records the leaf modules executed for ``x`` in runtime order, including
+        tensor shapes, trace-local tensor IDs, parameter counts, and timing.
+
+        Autograd remains enabled so ``trace.output`` can participate in
+        ``backward()``. Timing includes instrumentation overhead and is intended
+        for debugging rather than benchmarking.
+
+        Args:
+            x: Model input.
+            verbose: If True (default), print the formatted trace to stdout.
+
+        Returns:
+            A :class:`~nanonet.inspection.ModelTrace`.
+        """
+        from nanonet.inspection import trace_model
+
+        return trace_model(self, x, verbose=verbose)

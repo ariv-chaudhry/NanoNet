@@ -1,8 +1,9 @@
-"""Plain-text formatting for :class:`ModelInspectionReport`."""
+"""Plain-text formatting for inspection reports and execution traces."""
 
 from __future__ import annotations
 
-from nanonet.inspection.report import ModelInspectionReport
+from nanonet.inspection.report import ModelInspectionReport, ModelTrace, TensorTraceInfo
+from nanonet.inspection.utils import format_duration
 
 
 def format_bytes(num_bytes: int) -> str:
@@ -123,6 +124,82 @@ def format_inspection_report(report: ModelInspectionReport) -> str:
 
     lines.append("")
     return "\n".join(lines)
+
+
+def format_execution_trace(trace: ModelTrace) -> str:
+    """Render a chronological execution trace as terminal-safe plain text."""
+    lines: list[str] = []
+    width = 72
+    rule = "-" * width
+
+    lines.append("NanoNet Execution Trace")
+    lines.append(rule)
+    lines.append("")
+    lines.append(f"Model: {trace.model_type}")
+    lines.append("")
+    lines.append("Input")
+    if not trace.inputs:
+        lines.append("  (no Tensor inputs recorded)")
+    else:
+        for info in trace.inputs:
+            lines.append(f"  {_format_tensor_line(info)}")
+
+    for step in trace.steps:
+        lines.append("")
+        title = f"Step {step.index} - {step.module_name} | {step.module_type}"
+        if step.call_index > 1:
+            title += f" (call {step.call_index})"
+        lines.append(title)
+        lines.append(rule)
+        lines.append("Input")
+        if not step.inputs:
+            lines.append("  (none / non-Tensor)")
+        else:
+            for info in step.inputs:
+                lines.append(f"  {_format_tensor_line(info, compact=True)}")
+        lines.append("Output")
+        if not step.outputs:
+            lines.append("  (none / non-Tensor)")
+        else:
+            for info in step.outputs:
+                lines.append(f"  {_format_tensor_line(info, compact=True)}")
+        lines.append(f"Parameters: {_fmt_int(step.parameter_count)}")
+        lines.append(f"Time: {format_duration(step.duration_seconds)}")
+
+    lines.append("")
+    lines.append("Summary")
+    lines.append(rule)
+    lines.append(f"Steps: {len(trace.steps)}")
+    if trace.outputs:
+        out_desc = ", ".join(
+            _format_tensor_line(info, compact=True) for info in trace.outputs
+        )
+        lines.append(f"Output: {out_desc}")
+    else:
+        lines.append("Output: (non-Tensor / unavailable)")
+    lines.append(
+        f"Forward duration: {format_duration(trace.forward_duration_seconds)}"
+    )
+    lines.append(
+        f"Traced module time: {format_duration(trace.traced_duration_seconds)}"
+    )
+    lines.append("")
+    lines.append(
+        "Note: timings include tracing instrumentation overhead and are for "
+        "debugging, not benchmarking."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _format_tensor_line(info: TensorTraceInfo, *, compact: bool = False) -> str:
+    shape = format_shape(info.shape)
+    if compact:
+        return f"{info.trace_id} {shape}"
+    dtype = info.dtype or "?"
+    rg = info.requires_grad
+    rg_s = f" requires_grad={rg}" if rg is not None else ""
+    return f"{info.trace_id}   shape={shape} dtype={dtype}{rg_s}"
 
 
 def _fmt_int(n: int) -> str:
