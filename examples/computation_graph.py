@@ -4,23 +4,21 @@ from __future__ import annotations
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.layers import Dense, ReLU
-from nanonet.losses import MSELoss
+import nanonet as nn
 
 
 def main() -> None:
-    manual_seed(0)
-    model = Sequential(
-        Dense(4, 8),
-        ReLU(),
-        Dense(8, 2),
+    nn.manual_seed(0)
+    model = nn.Sequential(
+        nn.Linear(4, 8),
+        nn.ReLU(),
+        nn.Linear(8, 2),
     )
-    x = Tensor(np.random.randn(2, 4))
-    target = Tensor(np.zeros((2, 2)))
+    x = nn.Tensor(np.random.randn(2, 4))
+    target = nn.Tensor(np.zeros((2, 2)))
 
     pred = model(x)
-    loss = MSELoss()(pred, target)
+    loss = nn.MSELoss()(pred, target)
 
     print("=== Computation graph (before backward) ===\n")
     graph = loss.graph()

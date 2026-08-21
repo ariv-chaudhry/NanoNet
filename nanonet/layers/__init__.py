@@ -1,12 +1,13 @@
 """Neural-network layers."""
 
 from nanonet.layers.activations import ReLU, Sigmoid, Softmax, Tanh, relu, sigmoid, softmax, tanh
-from nanonet.layers.dense import Dense
+from nanonet.layers.dense import Dense, Linear
 from nanonet.layers.dropout import Dropout
 from nanonet.layers.flatten import Flatten
 
 __all__ = [
     "Dense",
+    "Linear",
     "ReLU",
     "Sigmoid",
     "Tanh",

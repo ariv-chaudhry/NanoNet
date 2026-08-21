@@ -54,12 +54,12 @@ class Dense(Module):
 
         if x.ndim < 2:
             raise ValueError(
-                f"Dense expected input with at least 2 dimensions (batch, features), "
-                f"got shape {x.shape}."
+                f"{type(self).__name__} expected input with at least 2 dimensions "
+                f"(batch, features), got shape {x.shape}."
             )
         if x.shape[-1] != self.in_features:
             raise ValueError(
-                f"Dense expected last input dimension {self.in_features} "
+                f"{type(self).__name__} expected last input dimension {self.in_features} "
                 f"but received {x.shape[-1]}."
             )
 
@@ -78,6 +78,16 @@ class Dense(Module):
 
     def __repr__(self) -> str:
         return (
-            f"Dense(in_features={self.in_features}, out_features={self.out_features}, "
-            f"bias={self.bias is not None})"
+            f"{type(self).__name__}(in_features={self.in_features}, "
+            f"out_features={self.out_features}, bias={self.bias is not None})"
         )
+
+
+class Linear(Dense):
+    """Fully-connected linear layer.
+
+    Identical to :class:`Dense`. Provided as a familiar public alias for
+    ``import nanonet as nn`` / ``nn.Linear(...)`` usage.
+    """
+
+    pass

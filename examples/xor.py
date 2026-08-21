@@ -4,45 +4,34 @@ from __future__ import annotations
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.layers import Dense, Tanh
-from nanonet.losses import MSELoss
-from nanonet.optimizers import Adam
+import nanonet as nn
 
 
 def main() -> None:
-    manual_seed(42)
+    nn.manual_seed(42)
 
     X = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
     y = np.array([[0.0], [1.0], [1.0], [0.0]])
 
-    model = Sequential(
-        Dense(2, 8),
-        Tanh(),
-        Dense(8, 1),
+    model = nn.Sequential(
+        nn.Linear(2, 8),
+        nn.Tanh(),
+        nn.Linear(8, 1),
     )
-    optimizer = Adam(model.parameters(), lr=0.05)
-    loss_fn = MSELoss()
+    optimizer = nn.Adam(model.parameters(), lr=0.05)
+    loss_fn = nn.MSELoss()
 
     for epoch in range(1, 2001):
-        pred = model(Tensor(X))
+        pred = model(nn.Tensor(X))
         loss = loss_fn(pred, y)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         if epoch % 500 == 0:
-            print(f"Epoch {epoch}: loss={float(loss.data):.6f}")
+            print(f"epoch={epoch:4d}  loss={float(loss.data):.6f}")
 
-    model.eval()
-    preds = model(Tensor(X)).data
-    bits = (preds >= 0.5).astype(int).reshape(-1)
-
-    print("\nInput     Prediction")
-    for (a, b), p, bit in zip(X, preds.reshape(-1), bits):
-        print(f"{int(a)} {int(b)}       {bit}  (raw={p:.4f})")
-
-    assert np.array_equal(bits, y.reshape(-1).astype(int)), "XOR was not learned."
-    print("\nXOR learned successfully.")
+    pred = model(nn.Tensor(X))
+    print("predictions:", np.round(pred.data.reshape(-1), 3))
 
 
 if __name__ == "__main__":

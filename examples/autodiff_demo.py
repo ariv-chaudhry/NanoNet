@@ -1,6 +1,6 @@
 """Demonstrate NanoNet automatic differentiation."""
 
-from nanonet import Tensor
+import nanonet as nn
 
 
 def main() -> None:
@@ -9,7 +9,7 @@ def main() -> None:
     print("dy/dx = 2x + 2")
     print("At x = 3: dy/dx = 8\n")
 
-    x = Tensor(3.0, requires_grad=True)
+    x = nn.Tensor(3.0, requires_grad=True)
     y = x**2 + 2 * x
     y.backward()
     print(f"x = {x.data}")
@@ -18,25 +18,17 @@ def main() -> None:
 
     print("=== Multivariable example ===")
     print("y = x*w + b")
-    print("dy/dx = w, dy/dw = x, dy/db = 1\n")
+    print("At x=2, w=3, b=1: y=7, dy/dx=3, dy/dw=2, dy/db=1\n")
 
-    x = Tensor(2.0, requires_grad=True)
-    w = Tensor(3.0, requires_grad=True)
-    b = Tensor(1.0, requires_grad=True)
+    x = nn.Tensor(2.0, requires_grad=True)
+    w = nn.Tensor(3.0, requires_grad=True)
+    b = nn.Tensor(1.0, requires_grad=True)
     y = x * w + b
     y.backward()
-    print(f"x.grad = {x.grad}  (expected 3.0)")
-    print(f"w.grad = {w.grad}  (expected 2.0)")
-    print(f"b.grad = {b.grad}  (expected 1.0)\n")
-
-    print("=== Branching graph ===")
-    print("y = x*x + 3*x  => dy/dx = 2x + 3")
-    print("At x = 2: dy/dx = 7\n")
-
-    x = Tensor(2.0, requires_grad=True)
-    y = x * x + 3 * x
-    y.backward()
-    print(f"x.grad = {x.grad}  (expected 7.0)")
+    print(f"y = {y.data}")
+    print(f"x.grad = {x.grad}")
+    print(f"w.grad = {w.grad}")
+    print(f"b.grad = {b.grad}")
 
 
 if __name__ == "__main__":

@@ -6,29 +6,26 @@ from pathlib import Path
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.layers import Dense, ReLU, Tanh
-from nanonet.losses import MSELoss
-from nanonet.optimizers import Adam
+import nanonet as nn
 
 
 def main() -> None:
-    manual_seed(0)
+    nn.manual_seed(0)
     rng = np.random.default_rng(0)
 
     X = rng.uniform(-2.0, 2.0, size=(200, 1))
     noise = rng.normal(0.0, 0.2, size=(200, 1))
     y = 3 * X**2 + 2 * X + noise
 
-    model = Sequential(
-        Dense(1, 32),
-        Tanh(),
-        Dense(32, 32),
-        ReLU(),
-        Dense(32, 1),
+    model = nn.Sequential(
+        nn.Linear(1, 32),
+        nn.Tanh(),
+        nn.Linear(32, 32),
+        nn.ReLU(),
+        nn.Linear(32, 1),
     )
-    optimizer = Adam(model.parameters(), lr=0.01)
-    loss_fn = MSELoss()
+    optimizer = nn.Adam(model.parameters(), lr=0.01)
+    loss_fn = nn.MSELoss()
 
     history = model.fit(
         X,
@@ -42,7 +39,7 @@ def main() -> None:
 
     xs = np.linspace(-2.0, 2.0, 200).reshape(-1, 1)
     model.eval()
-    ys = model(Tensor(xs)).data
+    ys = model(nn.Tensor(xs)).data
 
     results = Path("results")
     results.mkdir(exist_ok=True)

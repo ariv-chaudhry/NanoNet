@@ -4,11 +4,8 @@ from __future__ import annotations
 
 import argparse
 
-from nanonet import Sequential, manual_seed
+import nanonet as nn
 from nanonet.data import load_mnist
-from nanonet.layers import Dense, Dropout, ReLU
-from nanonet.losses import CrossEntropyLoss
-from nanonet.optimizers import Adam
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,7 +21,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    manual_seed(args.seed)
+    nn.manual_seed(args.seed)
 
     print("Loading MNIST...")
     X_train, y_train, X_test, y_test = load_mnist()
@@ -33,20 +30,20 @@ def main() -> None:
         X_train = X_train[: args.train_limit]
         y_train = y_train[: args.train_limit]
 
-    model = Sequential(
-        Dense(784, 128),
-        ReLU(),
-        Dropout(args.dropout),
-        Dense(128, 64),
-        ReLU(),
-        Dense(64, 10),
+    model = nn.Sequential(
+        nn.Linear(784, 128),
+        nn.ReLU(),
+        nn.Dropout(args.dropout),
+        nn.Linear(128, 64),
+        nn.ReLU(),
+        nn.Linear(64, 10),
     )
 
     model.summary(input_shape=(784,))
     print(f"Trainable parameters: {model.num_parameters()}")
 
-    optimizer = Adam(model.parameters(), lr=args.lr)
-    loss_fn = CrossEntropyLoss()
+    optimizer = nn.Adam(model.parameters(), lr=args.lr)
+    loss_fn = nn.CrossEntropyLoss()
 
     history = model.fit(
         X_train,

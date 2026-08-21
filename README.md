@@ -24,11 +24,83 @@ important pieces directly:
 - training loops
 - numerical gradient checking
 - model serialization
+- model inspection, execution tracing, computation graphs, and diagnostics
 
 The goal is not to compete with PyTorch.
 
 The goal is to make the mechanics behind neural-network training small enough
 to read and understand.
+
+NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
+
+---
+
+## Installation
+
+Clone the repository and install in editable mode:
+
+```bash
+git clone https://github.com/ariv-chaudhry/NanoNet.git
+cd NanoNet
+python -m pip install -e ".[dev]"
+```
+
+PyPI publication is planned for the upcoming `0.1.0` release. Until then, install
+from source as shown above.
+
+---
+
+## Quickstart
+
+```python
+import nanonet as nn
+import numpy as np
+
+nn.manual_seed(0)
+
+model = nn.Sequential(
+    nn.Linear(4, 8),
+    nn.ReLU(),
+    nn.Linear(8, 2),
+)
+
+x = nn.Tensor(np.random.randn(8, 4))
+y = model(x)
+
+model.inspect()
+model.trace(x)
+y.graph()
+model.diagnose(x)
+```
+
+---
+
+## Public API
+
+```text
+Core
+  Tensor, no_grad, manual_seed, __version__
+
+Modules
+  Module, Parameter, Sequential
+
+Layers
+  Dense, Linear, Dropout, Flatten
+  ReLU, Sigmoid, Tanh, Softmax
+
+Optimization
+  SGD, Adam, Optimizer
+
+Losses
+  MSELoss, CrossEntropyLoss
+
+Observability (methods)
+  Module.inspect, Module.trace, Module.diagnose
+  Tensor.graph
+```
+
+`Linear` is an alias of `Dense`. Report types live under `nanonet.inspection`
+for programmatic use; everyday workflows use the methods above.
 
 ---
 

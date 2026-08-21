@@ -29,3 +29,8 @@ jobs:
 
       - name: Ruff check
         run: ruff check nanonet tests examples benchmarks
+
+      - name: Build package
+        run: |
+          python -m build
+          python -m twine check dist/*

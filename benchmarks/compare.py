@@ -6,6 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
+# Local ``benchmarks`` helpers only. Install NanoNet with ``pip install -e .``.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from benchmarks.utils import RESULTS_DIR, set_global_seeds  # noqa: E402

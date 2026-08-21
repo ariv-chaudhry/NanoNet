@@ -17,6 +17,9 @@ env/
 htmlcov/
 coverage.xml
 
+.eggs/
+*.whl
+
 dist/
 build/
 *.egg-info/
