@@ -32,6 +32,23 @@ def format_shape(shape: tuple[int, ...] | None) -> str:
     return str(shape)
 
 
+def format_percentage(fraction: float | None, *, digits: int = 1) -> str:
+    """Format a fraction in [0, 1] as a percentage string."""
+    if fraction is None:
+        return "n/a"
+    return f"{100.0 * fraction:.{digits}f}%"
+
+
+def format_scientific(value: float | None, *, digits: int = 4) -> str:
+    """Format a float in compact scientific notation when appropriate."""
+    if value is None:
+        return "n/a"
+    abs_v = abs(value)
+    if abs_v != 0.0 and (abs_v < 1e-3 or abs_v >= 1e4):
+        return f"{value:.{digits}e}"
+    return f"{value:.{digits}g}"
+
+
 def format_inspection_report(report: ModelInspectionReport) -> str:
     """Render an inspection report as terminal-safe plain text."""
     lines: list[str] = []

@@ -1,13 +1,19 @@
-"""Structured data types for NanoNet model inspection reports.
+"""Structured data types for NanoNet observability reports.
 
-These dataclasses separate collection from presentation so later stages
-(``trace``, ``diagnose``) can reuse the same records without parsing text.
+These dataclasses separate collection from presentation so inspection, tracing,
+graph inspection, and diagnostics can share records without parsing text.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any
+
+
+def _shape_list(shape: tuple[int, ...] | None) -> list[int] | None:
+    if shape is None:
+        return None
+    return list(shape)
 
 
 @dataclass
@@ -26,6 +32,9 @@ class ActivationStats:
     element_count: int = 0
     saturation_fraction: float | None = None  # set for Sigmoid/Tanh diagnostics
 
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
 
 @dataclass
 class GradientStats:
@@ -38,6 +47,9 @@ class GradientStats:
     std: float | None = None
     min: float | None = None
     max: float | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
@@ -53,6 +65,9 @@ class DiagnosticFinding:
     threshold: float | None = None
     explanation: str | None = None
     recommendation: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
@@ -71,6 +86,15 @@ class RuntimeActivationRecord:
                 self.display_name = f"{self.name} [call {self.call_index}]"
             else:
                 self.display_name = self.name
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "module_type": self.module_type,
+            "call_index": self.call_index,
+            "display_name": self.display_name,
+            "stats": self.stats.to_dict(),
+        }
 
 
 @dataclass
@@ -91,6 +115,20 @@ class DiagnosticsReport:
 
         return format_diagnostics_report(self)
 
+    def to_dict(self) -> dict[str, Any]:
+        """JSON-compatible export (no Tensor / Module objects)."""
+        return {
+            "model_name": self.model_name,
+            "findings": [f.to_dict() for f in self.findings],
+            "checks_run": self.checks_run,
+            "warnings": self.warnings,
+            "critical": self.critical,
+            "info": self.info,
+            "activations_analyzed": self.activations_analyzed,
+            "gradients_available": self.gradients_available,
+            "ok": self.ok,
+        }
+
     @property
     def has_critical(self) -> bool:
         return self.critical > 0
@@ -106,11 +144,7 @@ class DiagnosticsReport:
 
 @dataclass
 class LayerInspection:
-    """Inspection record for a single (typically leaf) module.
-
-    Fields such as ``input_tensor_id`` / ``output_tensor_id`` are reserved for
-    future ``trace()`` support and may be ``None`` in Stage 1.
-    """
+    """Inspection record for a single (typically leaf) module."""
 
     name: str
     type: str
@@ -119,10 +153,22 @@ class LayerInspection:
     input_shape: tuple[int, ...] | None = None
     output_shape: tuple[int, ...] | None = None
     activation: ActivationStats = field(default_factory=ActivationStats)
-    # Future-facing identifiers (unused in Stage 1 formatting).
-    input_tensor_id: int | None = None
-    output_tensor_id: int | None = None
+    # Internal object identities for correlating inspect records (not in to_dict).
+    input_tensor_id: int | None = field(default=None, repr=False)
+    output_tensor_id: int | None = field(default=None, repr=False)
     parameter_names: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.type,
+            "parameter_count": self.parameter_count,
+            "trainable_parameter_count": self.trainable_parameter_count,
+            "input_shape": _shape_list(self.input_shape),
+            "output_shape": _shape_list(self.output_shape),
+            "activation": self.activation.to_dict(),
+            "parameter_names": list(self.parameter_names),
+        }
 
 
 @dataclass
@@ -141,7 +187,30 @@ class ModelInspectionReport:
     gradients: list[GradientStats] = field(default_factory=list)
     gradients_available: bool = False
     runtime_captured: bool = False
-    extra: dict[str, Any] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def __str__(self) -> str:
+        from nanonet.inspection.formatter import format_inspection_report
+
+        return format_inspection_report(self)
+
+    def to_dict(self) -> dict[str, Any]:
+        """JSON-compatible export (no Tensor / Module objects)."""
+        return {
+            "model_name": self.model_name,
+            "model_type": self.model_type,
+            "layers": [layer.to_dict() for layer in self.layers],
+            "total_parameters": self.total_parameters,
+            "trainable_parameters": self.trainable_parameters,
+            "non_trainable_parameters": self.non_trainable_parameters,
+            "estimated_parameter_memory_bytes": self.estimated_parameter_memory_bytes,
+            "input_shape": _shape_list(self.input_shape),
+            "output_shape": _shape_list(self.output_shape),
+            "gradients": [g.to_dict() for g in self.gradients],
+            "gradients_available": self.gradients_available,
+            "runtime_captured": self.runtime_captured,
+            "layer_count": self.layer_count,
+        }
 
     @property
     def layer_count(self) -> int:
@@ -156,7 +225,15 @@ class TensorTraceInfo:
     shape: tuple[int, ...] | None
     dtype: str | None
     requires_grad: bool | None
-    object_id: int | None = None
+    object_id: int | None = field(default=None, repr=False)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "trace_id": self.trace_id,
+            "shape": _shape_list(self.shape),
+            "dtype": self.dtype,
+            "requires_grad": self.requires_grad,
+        }
 
 
 @dataclass
@@ -171,7 +248,19 @@ class TraceStep:
     parameter_count: int
     duration_seconds: float
     call_index: int = 1  # invocation number for this module name within the trace
-    module_object_id: int | None = None
+    module_object_id: int | None = field(default=None, repr=False)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "index": self.index,
+            "module_name": self.module_name,
+            "module_type": self.module_type,
+            "inputs": [t.to_dict() for t in self.inputs],
+            "outputs": [t.to_dict() for t in self.outputs],
+            "parameter_count": self.parameter_count,
+            "duration_seconds": self.duration_seconds,
+            "call_index": self.call_index,
+        }
 
 
 @dataclass
@@ -180,6 +269,7 @@ class ModelTrace:
 
     ``output`` retains the forward-pass result so autograd can continue from it.
     Timing fields include instrumentation overhead and are for debugging only.
+    ``to_dict()`` exports metadata only and omits the live ``output`` Tensor.
     """
 
     model_name: str
@@ -189,12 +279,25 @@ class ModelTrace:
     outputs: list[TensorTraceInfo]
     forward_duration_seconds: float
     traced_duration_seconds: float
-    output: Any = None
+    output: Any = field(default=None, repr=False)
 
     def __str__(self) -> str:
         from nanonet.inspection.formatter import format_execution_trace
 
         return format_execution_trace(self)
+
+    def to_dict(self) -> dict[str, Any]:
+        """JSON-compatible export. Omits live ``output`` Tensor."""
+        return {
+            "model_name": self.model_name,
+            "model_type": self.model_type,
+            "steps": [s.to_dict() for s in self.steps],
+            "inputs": [t.to_dict() for t in self.inputs],
+            "outputs": [t.to_dict() for t in self.outputs],
+            "forward_duration_seconds": self.forward_duration_seconds,
+            "traced_duration_seconds": self.traced_duration_seconds,
+            "has_output": self.output is not None,
+        }
 
 
 @dataclass
@@ -211,6 +314,19 @@ class GraphTensorNode:
     is_parameter: bool
     is_root: bool = False
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "shape": _shape_list(self.shape),
+            "dtype": self.dtype,
+            "requires_grad": self.requires_grad,
+            "has_grad": self.has_grad,
+            "grad_shape": _shape_list(self.grad_shape),
+            "is_leaf": self.is_leaf,
+            "is_parameter": self.is_parameter,
+            "is_root": self.is_root,
+        }
+
 
 @dataclass
 class GraphOperationNode:
@@ -219,6 +335,9 @@ class GraphOperationNode:
     id: str
     name: str
 
+    def to_dict(self) -> dict[str, Any]:
+        return {"id": self.id, "name": self.name}
+
 
 @dataclass
 class GraphEdge:
@@ -226,6 +345,9 @@ class GraphEdge:
 
     source: str
     target: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"source": self.source, "target": self.target}
 
 
 @dataclass
@@ -249,6 +371,18 @@ class ComputationGraph:
         from nanonet.inspection.formatter import format_computation_graph
 
         return format_computation_graph(self)
+
+    def to_dict(self) -> dict[str, Any]:
+        """JSON-compatible export (metadata only)."""
+        return {
+            "root_id": self.root_id,
+            "tensors": [t.to_dict() for t in self.tensors],
+            "operations": [o.to_dict() for o in self.operations],
+            "edges": [e.to_dict() for e in self.edges],
+            "depth": self.depth,
+            "leaf_count": self.leaf_count,
+            "parameter_count": self.parameter_count,
+        }
 
     @property
     def tensor_nodes(self) -> list[GraphTensorNode]:

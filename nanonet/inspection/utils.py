@@ -182,4 +182,95 @@ def gradient_norm(grad: Any) -> float | None:
     arr = np.asarray(grad, dtype=np.float64)
     if arr.size == 0:
         return None
-    return float(np.linalg.norm(arr))
+    finite = arr[np.isfinite(arr)] if not np.all(np.isfinite(arr)) else arr
+    if finite.size == 0:
+        return None
+    return float(np.linalg.norm(finite))
+
+
+def format_dtype(dtype: Any) -> str | None:
+    """Concise user-facing dtype string (e.g. ``float64``)."""
+    if dtype is None:
+        return None
+    text = str(dtype)
+    if text.startswith("dtype(") and text.endswith(")"):
+        text = text[6:-1].strip("'\"")
+    if text.startswith("np."):
+        text = text[3:]
+    if text.startswith("<class '") and text.endswith("'>"):
+        text = text[8:-2].rsplit(".", 1)[-1]
+    return text
+
+
+def extract_tensor_metadata(value: Any) -> dict[str, Any]:
+    """Extract JSON-safe tensor metadata without retaining arrays.
+
+    Returns keys: ``shape``, ``dtype``, ``requires_grad``, ``has_grad``,
+    ``grad_shape``. Missing fields are ``None`` / ``False`` as appropriate.
+    """
+    if not isinstance(value, Tensor):
+        return {
+            "shape": shape_of(value),
+            "dtype": None,
+            "requires_grad": None,
+            "has_grad": False,
+            "grad_shape": None,
+        }
+    has_grad = value.grad is not None
+    return {
+        "shape": tuple(value.shape),
+        "dtype": format_dtype(value.dtype),
+        "requires_grad": bool(value.requires_grad),
+        "has_grad": has_grad,
+        "grad_shape": tuple(value.grad.shape) if has_grad else None,
+    }
+
+
+def gradient_stats_rows(
+    named_params: list[tuple[str, Parameter]],
+) -> tuple[list[Any], bool]:
+    """Build :class:`~nanonet.inspection.GradientStats` rows for named parameters.
+
+    Deduplicates shared parameters by object identity (first name wins).
+    """
+    from nanonet.inspection.report import GradientStats
+
+    rows: list[GradientStats] = []
+    any_grad = False
+    seen: set[int] = set()
+    for name, param in named_params:
+        pid = id(param)
+        if pid in seen:
+            continue
+        seen.add(pid)
+        if param.grad is None:
+            rows.append(GradientStats(name=name, exists=False))
+            continue
+        any_grad = True
+        g = np.asarray(param.grad, dtype=np.float64)
+        finite = g[np.isfinite(g)] if g.size and not np.all(np.isfinite(g)) else g
+        if finite.size == 0:
+            rows.append(
+                GradientStats(
+                    name=name,
+                    exists=True,
+                    norm=None,
+                    mean=None,
+                    std=None,
+                    min=None,
+                    max=None,
+                )
+            )
+            continue
+        rows.append(
+            GradientStats(
+                name=name,
+                exists=True,
+                norm=float(np.linalg.norm(finite)),
+                mean=float(np.mean(finite)),
+                std=float(np.std(finite)),
+                min=float(np.min(finite)),
+                max=float(np.max(finite)),
+            )
+        )
+    return rows, any_grad

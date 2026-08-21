@@ -7,6 +7,9 @@ from nanonet.inspection.formatter import (
     format_diagnostics_report,
     format_execution_trace,
     format_inspection_report,
+    format_percentage,
+    format_scientific,
+    format_shape,
 )
 from nanonet.inspection.graph import build_computation_graph, inspect_computation_graph
 from nanonet.inspection.inspector import inspect_model, leaf_modules
@@ -53,6 +56,9 @@ __all__ = [
     "format_diagnostics_report",
     "format_execution_trace",
     "format_inspection_report",
+    "format_percentage",
+    "format_scientific",
+    "format_shape",
     "inspect_computation_graph",
     "inspect_model",
     "leaf_modules",

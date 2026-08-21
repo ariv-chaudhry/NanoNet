@@ -8,11 +8,12 @@ from collections.abc import Callable
 from typing import Any
 
 from nanonet.inspection.formatter import format_execution_trace
+from nanonet.inspection.instrumentation import unique_leaf_modules
 from nanonet.inspection.report import ModelTrace, TensorTraceInfo, TraceStep
 from nanonet.inspection.utils import (
     collect_tensors,
     count_parameters,
-    leaf_modules,
+    extract_tensor_metadata,
 )
 from nanonet.nn.module import Module
 from nanonet.tensor import Tensor
@@ -32,11 +33,12 @@ class _TensorIdRegistry:
             return self._infos[self._ids[oid]]
         tid = f"T{self._next}"
         self._next += 1
+        meta = extract_tensor_metadata(tensor)
         info = TensorTraceInfo(
             trace_id=tid,
-            shape=tuple(tensor.shape),
-            dtype=str(tensor.dtype),
-            requires_grad=bool(tensor.requires_grad),
+            shape=meta["shape"],
+            dtype=meta["dtype"],
+            requires_grad=meta["requires_grad"],
             object_id=oid,
         )
         self._ids[oid] = tid
@@ -80,17 +82,7 @@ def trace_model(
     if not isinstance(x, Tensor):
         x = Tensor(x)
 
-    leaves = leaf_modules(model)
-    # Unique leaf module objects to instrument (a shared module is wrapped once).
-    unique_leaves: list[tuple[str, Module]] = []
-    seen_ids: set[int] = set()
-    for name, mod in leaves:
-        mid = id(mod)
-        if mid in seen_ids:
-            continue
-        seen_ids.add(mid)
-        unique_leaves.append((name, mod))
-
+    unique_leaves = unique_leaf_modules(model)
     registry = _TensorIdRegistry()
     input_infos = _infos_from_value(x, registry)
     steps: list[TraceStep] = []

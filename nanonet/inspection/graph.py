@@ -9,6 +9,7 @@ from nanonet.inspection.report import (
     GraphOperationNode,
     GraphTensorNode,
 )
+from nanonet.inspection.utils import extract_tensor_metadata
 from nanonet.nn.parameter import Parameter
 from nanonet.tensor import Tensor
 
@@ -80,15 +81,15 @@ def build_computation_graph(root: Tensor) -> ComputationGraph:
         label = id_map[nid]
         is_leaf = node._grad_fn is None
         is_param = isinstance(node, Parameter)
-        has_grad = node.grad is not None
+        meta = extract_tensor_metadata(node)
         tensor_nodes.append(
             GraphTensorNode(
                 id=label,
-                shape=tuple(node.shape),
-                dtype=str(node.dtype),
-                requires_grad=bool(node.requires_grad),
-                has_grad=has_grad,
-                grad_shape=tuple(node.grad.shape) if has_grad else None,
+                shape=meta["shape"],
+                dtype=meta["dtype"],
+                requires_grad=bool(meta["requires_grad"]),
+                has_grad=bool(meta["has_grad"]),
+                grad_shape=meta["grad_shape"],
                 is_leaf=is_leaf,
                 is_parameter=is_param,
                 is_root=(nid == id(root)),

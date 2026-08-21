@@ -4,12 +4,20 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from nanonet.nn.parameter import Parameter
 from nanonet.tensor import Tensor, no_grad
+
+if TYPE_CHECKING:
+    from nanonet.inspection.report import (
+        DiagnosticsReport,
+        ModelInspectionReport,
+        ModelTrace,
+    )
+    from nanonet.inspection.thresholds import DiagnosticThresholds
 
 
 class Module:
@@ -275,16 +283,21 @@ class Module:
         x: Any | None = None,
         *,
         verbose: bool = True,
-    ) -> Any:
+    ) -> ModelInspectionReport:
         """Inspect model structure, and optionally runtime shapes / activations.
 
         Args:
             x: Optional sample input. When provided, runs a ``no_grad`` forward
                 pass to capture per-layer shapes and activation statistics.
             verbose: If True (default), print a formatted report to stdout.
+                If False, return the report without printing.
 
         Returns:
             A :class:`~nanonet.inspection.ModelInspectionReport`.
+
+        Notes:
+            Does not update parameters, clear gradients, or leave instrumentation
+            installed. Forward errors propagate after cleanup.
         """
         from nanonet.inspection import inspect_model
 
@@ -295,7 +308,7 @@ class Module:
         x: Any,
         *,
         verbose: bool = True,
-    ) -> Any:
+    ) -> ModelTrace:
         """Trace a forward pass through this module.
 
         Records the leaf modules executed for ``x`` in runtime order, including
@@ -308,9 +321,14 @@ class Module:
         Args:
             x: Model input.
             verbose: If True (default), print the formatted trace to stdout.
+                If False, return the trace without printing.
 
         Returns:
             A :class:`~nanonet.inspection.ModelTrace`.
+
+        Notes:
+            Does not modify parameters or existing gradients. Forward errors
+            propagate after instrumentation cleanup.
         """
         from nanonet.inspection import trace_model
 
@@ -321,8 +339,8 @@ class Module:
         x: Any | None = None,
         *,
         verbose: bool = True,
-        thresholds: Any | None = None,
-    ) -> Any:
+        thresholds: DiagnosticThresholds | None = None,
+    ) -> DiagnosticsReport:
         """Diagnose potential numerical and training issues in this module.
 
         Without ``x``, analyzes parameters and any gradients already present.
@@ -336,10 +354,15 @@ class Module:
         Args:
             x: Optional sample input for activation diagnostics.
             verbose: If True (default), print the formatted report to stdout.
+                If False, return the report without printing.
             thresholds: Optional :class:`~nanonet.inspection.DiagnosticThresholds`.
 
         Returns:
             A :class:`~nanonet.inspection.DiagnosticsReport`.
+
+        Notes:
+            Does not modify parameters, inputs, or existing gradients.
+            Forward errors propagate after instrumentation cleanup.
         """
         from nanonet.inspection import diagnose_model
 

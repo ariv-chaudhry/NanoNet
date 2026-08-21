@@ -10,11 +10,14 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from nanonet.utils import unbroadcast
+
+if TYPE_CHECKING:
+    from nanonet.inspection.report import ComputationGraph
 
 _grad_enabled: ContextVar[bool] = ContextVar("nanonet_grad_enabled", default=True)
 
@@ -465,7 +468,7 @@ class Tensor:
         """Return an independent copy of this tensor detached from the graph."""
         return Tensor(self.data.copy(), requires_grad=False)
 
-    def graph(self, *, verbose: bool = True) -> Any:
+    def graph(self, *, verbose: bool = True) -> ComputationGraph:
         """Inspect the autograd computation graph ending at this tensor.
 
         Traverses ``_parents`` / ``_grad_fn`` from this tensor (the root) and
@@ -478,6 +481,7 @@ class Tensor:
 
         Args:
             verbose: If True (default), print the formatted graph to stdout.
+                If False, return the graph without printing.
 
         Returns:
             A :class:`~nanonet.inspection.ComputationGraph`.

@@ -2,23 +2,22 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
 from typing import Any
 
 import numpy as np
 
 from nanonet.inspection.checks import build_context, run_all_checks
 from nanonet.inspection.formatter import format_diagnostics_report
+from nanonet.inspection.instrumentation import run_observed_forward
 from nanonet.inspection.report import (
     ActivationStats,
     DiagnosticsReport,
     RuntimeActivationRecord,
 )
 from nanonet.inspection.thresholds import DEFAULT_THRESHOLDS, DiagnosticThresholds
-from nanonet.inspection.utils import activation_stats, leaf_modules
+from nanonet.inspection.utils import activation_stats
 from nanonet.nn.module import Module
-from nanonet.tensor import Tensor, no_grad
+from nanonet.tensor import Tensor
 
 
 def _saturation_fraction(
@@ -63,65 +62,28 @@ def _collect_activations(
     thresholds: DiagnosticThresholds,
 ) -> list[RuntimeActivationRecord]:
     """One instrumented ``no_grad`` forward; restores wrappers even on failure."""
-    if not isinstance(x, Tensor):
-        x = Tensor(x)
-
-    leaves = leaf_modules(model)
-    unique_leaves: list[tuple[str, Module]] = []
-    seen_ids: set[int] = set()
-    for name, mod in leaves:
-        mid = id(mod)
-        if mid in seen_ids:
-            continue
-        seen_ids.add(mid)
-        unique_leaves.append((name, mod))
-
     records: list[RuntimeActivationRecord] = []
-    call_counts: dict[str, int] = defaultdict(int)
-    originals: dict[int, Callable[..., Any]] = {}
-    had_instance_forward: dict[int, bool] = {}
 
-    for name, mod in unique_leaves:
-        mid = id(mod)
-        had_instance_forward[mid] = "forward" in mod.__dict__
-        originals[mid] = mod.forward
+    def on_call(
+        layer_name: str,
+        module_ref: Module,
+        _inp: Any,
+        out: Any,
+        call_index: int,
+    ) -> None:
+        mtype = type(module_ref).__name__
+        stats = activation_stats(out)
+        stats = _enrich_activation_stats(stats, out, mtype, thresholds)
+        records.append(
+            RuntimeActivationRecord(
+                name=layer_name,
+                module_type=mtype,
+                call_index=call_index,
+                stats=stats,
+            )
+        )
 
-        def _make_wrapper(
-            layer_name: str,
-            module_ref: Module,
-            original: Callable[..., Any],
-        ) -> Callable[..., Any]:
-            def wrapped(*args: Any, **kwargs: Any) -> Any:
-                out = original(*args, **kwargs)
-                call_counts[layer_name] += 1
-                mtype = type(module_ref).__name__
-                stats = activation_stats(out)
-                stats = _enrich_activation_stats(stats, out, mtype, thresholds)
-                records.append(
-                    RuntimeActivationRecord(
-                        name=layer_name,
-                        module_type=mtype,
-                        call_index=call_counts[layer_name],
-                        stats=stats,
-                    )
-                )
-                return out
-
-            return wrapped
-
-        mod.forward = _make_wrapper(name, mod, originals[mid])  # type: ignore[method-assign]
-
-    try:
-        with no_grad():
-            model(x)
-    finally:
-        for _name, mod in unique_leaves:
-            mid = id(mod)
-            if had_instance_forward[mid]:
-                mod.forward = originals[mid]  # type: ignore[method-assign]
-            elif "forward" in mod.__dict__:
-                del mod.forward
-
+    run_observed_forward(model, x, on_call, disable_grad=True)
     return records
 
 
@@ -154,12 +116,8 @@ def diagnose_model(
     activations_analyzed = False
 
     if x is not None:
-        was_training = model.training
-        try:
-            activations = _collect_activations(model, x, thr)
-            activations_analyzed = True
-        finally:
-            model.train(was_training)
+        activations = _collect_activations(model, x, thr)
+        activations_analyzed = True
 
     ctx = build_context(
         model,

@@ -949,224 +949,81 @@ Shape inference is performed without constructing an autograd graph.
 
 ---
 
-# Model Inspection
+# Observability
 
-NanoNet includes built-in inspection tools for exploring model structure,
-parameter counts, tensor shapes, activation statistics, and gradients:
+NanoNet makes neural-network internals observable through model inspection,
+execution tracing, autograd graph inspection, and evidence-based diagnostics.
+
+| API | Purpose |
+| --- | --- |
+| `model.inspect()` | Model structure, parameters, shapes, and statistics |
+| `model.trace(x)` | Actual module execution order for an input |
+| `tensor.graph()` | Autograd operation / dependency graph |
+| `model.diagnose(x)` | Numerical and optimization warning checks |
+
+All four APIs share the same conventions:
+
+* print by default; suppress with `verbose=False`
+* return a structured report object
+* support `print(report)` via `__str__`
+* support `report.to_dict()` for JSON-compatible metadata
+
+```python
+model.inspect(x)
+
+trace = model.trace(x)
+
+prediction = model(x)
+loss = criterion(prediction, target)
+loss.graph()
+
+loss.backward()
+model.diagnose(x)
+```
+
+### Model Inspection
 
 ```python
 report = model.inspect()
+report = model.inspect(x)  # runtime shapes / activations
 ```
 
-With a sample batch, NanoNet also reports per-layer shapes and activations:
-
-```python
-report = model.inspect(x)
-```
-
-Use `verbose=False` to collect the structured report without printing.
-
-Example (structural):
-
-```text
-NanoNet Model Inspector
-------------------------------------------------------------------------
-
-Model: Sequential
-Layers: 3
-Parameters: 101,770
-Trainable: 101,770
-Parameter Memory: 794.30 KB
-
-Layers
-------------------------------------------------------------------------
-Name                     Type               Parameters
-------------------------------------------------------------------------
-0                        Dense                 100,480
-1                        ReLU                        0
-2                        Dense                   1,290
-------------------------------------------------------------------------
-Total                                          101,770
-```
-
-See `examples/model_inspection.py`.
-
----
-
-# Execution Tracing
-
-`inspect()` summarizes a model. `trace()` records the **runtime execution path**
-for a specific input:
-
-```python
-trace = model.trace(x)
-```
+### Execution Tracing
 
 ```python
 trace = model.trace(x, verbose=False)
 for step in trace.steps:
-    print(step.module_name, step.inputs[0].trace_id, step.outputs[0].shape)
+    print(step.module_name, step.outputs[0].shape)
 ```
 
-```text
-inspect()  -> model structure, parameters, optional activation stats
-trace()    -> chronological module execution for one forward pass
-```
+Autograd stays enabled so `trace.output` can participate in `backward()`.
+Timings include instrumentation overhead (debugging only).
 
-Example:
-
-```text
-NanoNet Execution Trace
-------------------------------------------------------------------------
-
-Model: Sequential
-
-Input
-  T0   shape=(2, 4) dtype=float64 requires_grad=False
-
-Step 1 - 0 | Dense
-...
-Input
-  T0 (2, 4)
-Output
-  T1 (2, 8)
-Parameters: 40
-Time: 0.094 ms
-```
-
-Trace timings include instrumentation overhead and are for **debugging /
-observability**, not benchmarking (use `benchmarks/` for performance work).
-
-See `examples/execution_trace.py`.
-
----
-
-# Computation Graph Inspection
-
-NanoNet exposes the autograd graph behind any differentiable Tensor, making it
-possible to inspect how operations, parameters, and intermediate tensors
-contribute to a result:
-
-```text
-model.inspect()  -> model structure and statistics
-model.trace(x)   -> actual module execution path
-tensor.graph()   -> underlying autograd computation graph
-model.diagnose() -> potential training and numerical issues
-```
-
-```python
-pred = model(x)
-loss = criterion(pred, target)
-
-loss.graph()
-```
-
-Use `verbose=False` to collect the structured graph without printing:
+### Computation Graphs
 
 ```python
 graph = loss.graph(verbose=False)
-print(graph.root_id, graph.depth)
-for op in graph.operations:
-    print(op.id, op.name)
+print(graph.root_id, [op.name for op in graph.operations])
 ```
 
-Unlike `trace()`, which records modules, `graph()` shows lower-level autograd
-operations (for example MatMul and Add inside a Dense layer).
+Exposes lower-level autograd ops (for example MatMul/Add inside Dense), not
+merely module names. Graph IDs are local to each `graph()` call.
 
-Example:
-
-```text
-NanoNet Computation Graph
-------------------------------------------------------------------------
-
-T0 --+
-     +- MatMul -> T1
-P0 --+
-
-T1 --+
-     +- Add -> T2
-P1 --+
-
-T2 -> ReLU -> T3
-...
-
-Graph Summary
-------------------------------------------------------------------------
-Tensor nodes:  ...
-Operations:    ...
-Depth:         ...
-Parameters:    ...
-Root:          ...
-```
-
-See `examples/computation_graph.py`.
-
----
-
-# Model Diagnostics
-
-NanoNet can also highlight potential numerical and training issues with
-evidence-backed findings:
-
-```text
-model.inspect()  -> model structure and statistics
-model.trace(x)   -> runtime execution path
-tensor.graph()   -> autograd computation graph
-model.diagnose() -> potential training and numerical issues
-```
+### Diagnostics
 
 ```python
-report = model.diagnose(x)
-
+report = model.diagnose(x, verbose=False)
 for finding in report.findings:
-    if finding.severity == "critical":
+    if finding.severity != "info":
         print(finding.code, finding.message)
 ```
 
-Without input, NanoNet checks parameters and any gradients already present.
-With a sample batch, it also runs one forward pass under ``no_grad`` to
-inspect activations (dead ReLU, saturation, non-finite outputs, and similar).
+Never calls `backward()`. NaN/Inf checks are definitive; vanishing gradients,
+dead ReLU, and saturation are conservative heuristics (`DiagnosticThresholds`).
 
-``diagnose()`` never calls ``backward()``. Gradient findings use gradients that
-already exist on parameters.
-
-NaN and infinity checks are definitive. Findings such as vanishing gradients,
-dead activations, or saturation are **threshold-based indicators** intended to
-guide debugging rather than prove a specific root cause.
-
-Default heuristic thresholds (see ``DiagnosticThresholds``) include:
-
-| Check | Default |
-| --- | --- |
-| Exploding gradient L2 norm | `1e3` |
-| Vanishing gradient L2 norm | `1e-8` |
-| Layer gradient imbalance ratio | `100x` |
-| Dead ReLU zero fraction | `95%` |
-| Sigmoid/Tanh saturation fraction | `95%` within `0.01` of bounds |
-| Parameter / activation abs max | `1e6` |
-
-Example:
-
-```text
-NanoNet Diagnostics
-------------------------------------------------------------------------
-
-Model: Sequential
-Checks: 13
-Critical: 0
-Warnings: 1
-Info: 0
-
-Activation Diagnostics
-------------------------------------------------------------------------
-[WARN] RELU_DEAD
-  Target: 1
-  ReLU '1' has a very high fraction of zero activations.
-  Observed: 1 (threshold 0.95)
-  ...
-```
-
-See `examples/model_diagnostics.py`.
+Detailed notes: [docs/observability.md](docs/observability.md).
+Examples: `examples/observability_workflow.py` and the focused scripts under
+`examples/`.
 
 ---
 
@@ -1350,6 +1207,12 @@ python examples/computation_graph.py
 python examples/model_diagnostics.py
 ```
 
+## Observability Workflow
+
+```bash
+python examples/observability_workflow.py
+```
+
 ---
 
 # Project Structure
@@ -1370,18 +1233,25 @@ NanoNet/
 │   ├── optimizers/
 │   ├── data/
 │   ├── metrics/
-│   └── training/
+│   ├── training/
+│   └── inspection/
 │
 ├── examples/
 │   ├── autodiff_demo.py
 │   ├── xor.py
 │   ├── regression.py
-│   └── mnist_mlp.py
+│   ├── mnist_mlp.py
+│   ├── model_inspection.py
+│   ├── execution_trace.py
+│   ├── computation_graph.py
+│   ├── model_diagnostics.py
+│   └── observability_workflow.py
 │
 ├── benchmarks/
 │   ├── benchmark_nanonet.py
 │   ├── benchmark_pytorch.py
-│   └── compare.py
+│   ├── compare.py
+│   └── observability_overhead.py
 │
 ├── tests/
 ├── docs/
