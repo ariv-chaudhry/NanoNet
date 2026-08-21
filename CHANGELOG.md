@@ -5,11 +5,22 @@ All notable changes to NanoNet are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Release engineering: PyPI Trusted Publishing workflow, `RELEASING.md`, and
+  release smoke / tag-consistency scripts
+
 ## [0.1.0] - Unreleased
 
-First public package release candidate.
+First public package release.
 
-NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
+NanoNet is a lightweight neural-network framework designed around transparent
+internals and built-in observability. It is pre-1.0; public APIs may evolve.
+
+Set the release date (YYYY-MM-DD) in the release-preparation commit before
+tagging `v0.1.0`. See `RELEASING.md`.
 
 ### Added
 
@@ -18,8 +29,9 @@ NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
 - Layers including `Dense` / `Linear`, activations, `Dropout`, and `Flatten`
 - Losses (`MSELoss`, `CrossEntropyLoss`) and optimizers (`SGD`, `Adam`)
 - Data loading utilities and a lightweight trainer
-- Model inspection (`model.inspect`)
-- Execution tracing (`model.trace`)
-- Autograd computation graph inspection (`tensor.graph`)
-- Evidence-based model diagnostics (`model.diagnose`)
-- Installable Python package with a curated top-level public API
+- Model inspection with `model.inspect()`
+- Forward execution tracing with `model.trace(x)`
+- Autograd computation graph inspection with `tensor.graph()`
+- Evidence-based model diagnostics with `model.diagnose()`
+- Benchmarking / comparison infrastructure against reference frameworks
+- Installable public package API (`import nanonet as nn`)

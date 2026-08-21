@@ -1,35 +1,32 @@
 # NanoNet
 
-A neural-network framework built from scratch with Python and NumPy.
+A lightweight neural-network framework built from scratch with Python and NumPy,
+designed around **transparent internals** and built-in observability.
 
-NanoNet started as a way for me to understand what frameworks such as PyTorch
-are actually doing behind calls like:
+NanoNet started as a way to understand what frameworks such as PyTorch are
+actually doing behind calls like:
 
 ```python
 loss.backward()
 optimizer.step()
 ```
 
-Instead of wrapping an existing machine-learning library, I implemented the
-important pieces directly:
+Instead of wrapping an existing machine-learning library, NanoNet implements
+the important pieces directly — tensors, reverse-mode autodiff, layers,
+optimizers, training utilities — and adds first-class tools to inspect models,
+trace execution, explore autograd graphs, and diagnose numerical issues:
 
-- tensors
-- computational graphs
-- reverse-mode automatic differentiation
-- backpropagation
-- trainable parameters
-- neural-network layers
-- optimizers
-- data loading
-- training loops
-- numerical gradient checking
-- model serialization
-- model inspection, execution tracing, computation graphs, and diagnostics
+```python
+model.inspect()
+model.trace(x)
+output.graph()
+model.diagnose(x)
+```
 
-The goal is not to compete with PyTorch.
+The goal is not to compete with PyTorch on performance.
 
-The goal is to make the mechanics behind neural-network training small enough
-to read and understand.
+The goal is to make neural-network training mechanics small enough to read,
+understand, and debug.
 
 NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
 
@@ -37,7 +34,7 @@ NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
 
 ## Installation
 
-Clone the repository and install in editable mode:
+### From source (current)
 
 ```bash
 git clone https://github.com/ariv-chaudhry/NanoNet.git
@@ -45,8 +42,15 @@ cd NanoNet
 python -m pip install -e ".[dev]"
 ```
 
-PyPI publication is planned for the upcoming `0.1.0` release. Until then, install
-from source as shown above.
+### From PyPI (after `0.1.0` is published)
+
+```bash
+pip install nanonet
+```
+
+Until the first PyPI release is live, use the source install above.
+See [RELEASING.md](https://github.com/ariv-chaudhry/NanoNet/blob/main/RELEASING.md)
+for the publication process.
 
 ---
 
@@ -1093,7 +1097,7 @@ for finding in report.findings:
 Never calls `backward()`. NaN/Inf checks are definitive; vanishing gradients,
 dead ReLU, and saturation are conservative heuristics (`DiagnosticThresholds`).
 
-Detailed notes: [docs/observability.md](docs/observability.md).
+Detailed notes: [docs/observability.md](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/observability.md).
 Examples: `examples/observability_workflow.py` and the focused scripts under
 `examples/`.
 
@@ -1155,7 +1159,7 @@ NanoNet has been compared against PyTorch for:
 - matched MNIST learning performance
 
 Full methodology, environment metadata, interpretation, and limitations:
-**[docs/evaluation.md](docs/evaluation.md)**.
+**[docs/evaluation.md](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/evaluation.md)**.
 
 ### Snapshot results (measured, CPU, float64)
 
@@ -1173,7 +1177,7 @@ Full methodology, environment metadata, interpretation, and limitations:
 Runtime values are machine-dependent (recorded on Windows 11 / Intel CPU;
 see JSON under `results/`).
 
-![NanoNet vs PyTorch runtime scaling](results/runtime_scaling.png)
+![NanoNet vs PyTorch runtime scaling](https://raw.githubusercontent.com/ariv-chaudhry/NanoNet/main/results/runtime_scaling.png)
 
 ```bash
 pip install -e ".[benchmark]"
@@ -1383,10 +1387,10 @@ Trainer
 
 More detailed explanations are available in:
 
-- [`docs/architecture.md`](docs/architecture.md)
-- [`docs/autodiff.md`](docs/autodiff.md)
-- [`docs/backpropagation.md`](docs/backpropagation.md)
-- [`docs/optimizers.md`](docs/optimizers.md)
+- [`docs/architecture.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/architecture.md)
+- [`docs/autodiff.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/autodiff.md)
+- [`docs/backpropagation.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/backpropagation.md)
+- [`docs/optimizers.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/optimizers.md)
 
 ---
 
