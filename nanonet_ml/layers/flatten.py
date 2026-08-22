@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from nanonet.nn.module import Module
-from nanonet.tensor import Tensor
+from nanonet_ml.nn.module import Module
+from nanonet_ml.tensor import Tensor
 
 
 class Flatten(Module):

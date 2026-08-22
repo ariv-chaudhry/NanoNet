@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from nanonet import Tensor, manual_seed
-from nanonet.gradcheck import gradcheck
-from nanonet.layers import Dense
+from nanonet_ml import Tensor, manual_seed
+from nanonet_ml.gradcheck import gradcheck
+from nanonet_ml.layers import Dense
 
 
 def test_dense_shapes():

@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.layers import Dense, Dropout, Flatten, ReLU
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.layers import Dense, Dropout, Flatten, ReLU
 
 
 def test_sequential_forward():

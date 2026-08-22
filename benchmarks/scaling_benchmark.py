@@ -42,9 +42,9 @@ def _time_nanonet_train(
     batch_size: int,
     seed: int,
 ) -> None:
-    from nanonet import manual_seed
-    from nanonet.losses import CrossEntropyLoss
-    from nanonet.optimizers import Adam
+    from nanonet_ml import manual_seed
+    from nanonet_ml.losses import CrossEntropyLoss
+    from nanonet_ml.optimizers import Adam
 
     manual_seed(seed)
     model = nanonet_mlp(ARCH)
@@ -63,7 +63,7 @@ def _time_nanonet_train(
 
 
 def _time_nanonet_infer(X_infer: np.ndarray, *, seed: int) -> None:
-    from nanonet import Tensor, manual_seed, no_grad
+    from nanonet_ml import Tensor, manual_seed, no_grad
 
     manual_seed(seed)
     model = nanonet_mlp(ARCH)

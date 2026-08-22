@@ -6,11 +6,11 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from nanonet.inspection.report import DiagnosticFinding, RuntimeActivationRecord
-from nanonet.inspection.thresholds import DiagnosticThresholds
-from nanonet.inspection.utils import gradient_norm, leaf_modules
-from nanonet.nn.module import Module
-from nanonet.nn.parameter import Parameter
+from nanonet_ml.inspection.report import DiagnosticFinding, RuntimeActivationRecord
+from nanonet_ml.inspection.thresholds import DiagnosticThresholds
+from nanonet_ml.inspection.utils import gradient_norm, leaf_modules
+from nanonet_ml.nn.module import Module
+from nanonet_ml.nn.parameter import Parameter
 
 
 @dataclass

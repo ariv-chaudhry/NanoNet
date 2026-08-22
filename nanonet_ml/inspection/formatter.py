@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from nanonet.inspection.report import (
+from nanonet_ml.inspection.report import (
     ComputationGraph,
     DiagnosticFinding,
     DiagnosticsReport,
@@ -11,7 +11,7 @@ from nanonet.inspection.report import (
     ModelTrace,
     TensorTraceInfo,
 )
-from nanonet.inspection.utils import format_duration
+from nanonet_ml.inspection.utils import format_duration
 
 
 def format_bytes(num_bytes: int) -> str:

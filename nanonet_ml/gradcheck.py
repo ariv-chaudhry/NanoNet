@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from nanonet.tensor import Tensor
+from nanonet_ml.tensor import Tensor
 
 
 @dataclass

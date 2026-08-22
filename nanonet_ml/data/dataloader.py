@@ -7,8 +7,8 @@ from typing import Any
 
 import numpy as np
 
-from nanonet.data.dataset import Dataset
-from nanonet.utils import get_rng
+from nanonet_ml.data.dataset import Dataset
+from nanonet_ml.utils import get_rng
 
 
 class DataLoader:
@@ -17,7 +17,7 @@ class DataLoader:
     Features:
         * batching
         * optional shuffling
-        * deterministic seeding via ``nanonet.manual_seed`` or ``seed``
+        * deterministic seeding via ``nanonet_ml.manual_seed`` or ``seed``
         * ``drop_last`` for incomplete final batches
 
     Multiprocessing is intentionally omitted for educational clarity.

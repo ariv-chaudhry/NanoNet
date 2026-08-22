@@ -6,10 +6,10 @@ from typing import Any
 
 import numpy as np
 
-from nanonet.inspection.report import ActivationStats
-from nanonet.nn.module import Module
-from nanonet.nn.parameter import Parameter
-from nanonet.tensor import Tensor
+from nanonet_ml.inspection.report import ActivationStats
+from nanonet_ml.nn.module import Module
+from nanonet_ml.nn.parameter import Parameter
+from nanonet_ml.tensor import Tensor
 
 
 def iter_named_modules(
@@ -229,11 +229,11 @@ def extract_tensor_metadata(value: Any) -> dict[str, Any]:
 def gradient_stats_rows(
     named_params: list[tuple[str, Parameter]],
 ) -> tuple[list[Any], bool]:
-    """Build :class:`~nanonet.inspection.GradientStats` rows for named parameters.
+    """Build :class:`~nanonet_ml.inspection.GradientStats` rows for named parameters.
 
     Deduplicates shared parameters by object identity (first name wins).
     """
-    from nanonet.inspection.report import GradientStats
+    from nanonet_ml.inspection.report import GradientStats
 
     rows: list[GradientStats] = []
     any_grad = False

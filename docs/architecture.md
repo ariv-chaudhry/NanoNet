@@ -36,7 +36,7 @@ Each part handles one major responsibility.
 The lowest level of NanoNet is:
 
 ```text
-nanonet/tensor.py
+nanonet_ml/tensor.py
 ```
 
 A `Tensor` wraps a NumPy array and optionally participates in automatic
@@ -45,7 +45,7 @@ differentiation.
 Example:
 
 ```python
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 x = Tensor(
     [1.0, 2.0, 3.0],
@@ -127,7 +127,7 @@ gradients.
 For forward-only operations, graph construction can be disabled using:
 
 ```python
-from nanonet import no_grad
+from nanonet_ml import no_grad
 
 with no_grad():
     predictions = model(inputs)
@@ -158,7 +158,7 @@ whether autograd graph recording is enabled
 Trainable tensors use:
 
 ```text
-nanonet/nn/parameter.py
+nanonet_ml/nn/parameter.py
 ```
 
 A `Parameter` is a Tensor that is intended to be optimized.
@@ -191,7 +191,7 @@ trainable model state
 The base neural-network component is:
 
 ```text
-nanonet/nn/module.py
+nanonet_ml/nn/module.py
 ```
 
 A `Module` automatically tracks:
@@ -241,7 +241,7 @@ recursively collects the four trainable Parameters.
 Standard layers live in:
 
 ```text
-nanonet/layers/
+nanonet_ml/layers/
 ```
 
 Examples include:
@@ -300,8 +300,8 @@ responsible for differentiation.
 Example:
 
 ```python
-from nanonet import Sequential
-from nanonet.layers import Dense, ReLU
+from nanonet_ml import Sequential
+from nanonet_ml.layers import Dense, ReLU
 
 model = Sequential([
     Dense(784, 128),
@@ -345,7 +345,7 @@ Each layer receives the output of the previous layer.
 Loss functions live in:
 
 ```text
-nanonet/losses/
+nanonet_ml/losses/
 ```
 
 NanoNet currently includes:
@@ -405,7 +405,7 @@ using a numerically stable log-sum-exp calculation.
 Optimizers live in:
 
 ```text
-nanonet/optimizers/
+nanonet_ml/optimizers/
 ```
 
 Current implementations include:
@@ -451,7 +451,7 @@ docs/optimizers.md
 Data utilities live in:
 
 ```text
-nanonet/data/
+nanonet_ml/data/
 ```
 
 The package includes:
@@ -468,7 +468,7 @@ MNIST loading utilities
 For example:
 
 ```python
-from nanonet.data import TensorDataset
+from nanonet_ml.data import TensorDataset
 
 dataset = TensorDataset(
     X_train,
@@ -494,7 +494,7 @@ The implementation is intentionally single-process to keep it readable.
 MNIST support is implemented in:
 
 ```text
-nanonet/data/mnist.py
+nanonet_ml/data/mnist.py
 ```
 
 The loader can:
@@ -519,7 +519,7 @@ should not be committed.
 The Python package itself:
 
 ```text
-nanonet/data/
+nanonet_ml/data/
 ```
 
 remains tracked.
@@ -531,7 +531,7 @@ remains tracked.
 Training orchestration lives in:
 
 ```text
-nanonet/training/
+nanonet_ml/training/
 ```
 
 The core class is:
@@ -608,7 +608,7 @@ eval mode + no graph recording
 Training metrics are stored in:
 
 ```text
-nanonet/training/history.py
+nanonet_ml/training/history.py
 ```
 
 A `History` object can record values such as:
@@ -629,7 +629,7 @@ These values can later be inspected or plotted.
 Gradient verification is implemented in:
 
 ```text
-nanonet/gradcheck.py
+nanonet_ml/gradcheck.py
 ```
 
 NanoNet compares:
@@ -668,7 +668,7 @@ zero.
 Model serialization lives in:
 
 ```text
-nanonet/serialization.py
+nanonet_ml/serialization.py
 ```
 
 Parameters are saved using:
@@ -723,7 +723,7 @@ No Python pickle is required.
 Classification metrics live in:
 
 ```text
-nanonet/metrics/
+nanonet_ml/metrics/
 ```
 
 For classification, NanoNet calculates predictions using the largest logit:
@@ -748,7 +748,7 @@ The major repository directories are:
 
 ```text
 NanoNet/
-├── nanonet/
+├── nanonet_ml/
 │   ├── tensor.py
 │   ├── autograd.py
 │   ├── gradcheck.py

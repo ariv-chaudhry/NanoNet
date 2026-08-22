@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from nanonet.tensor import Tensor
+from nanonet_ml.tensor import Tensor
 
 
 def accuracy(logits: Tensor | np.ndarray, targets: Tensor | np.ndarray) -> float:

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from nanonet.nn.module import Module
-from nanonet.tensor import Function, Tensor
+from nanonet_ml.nn.module import Module
+from nanonet_ml.tensor import Function, Tensor
 
 
 class CrossEntropyFunction(Function):

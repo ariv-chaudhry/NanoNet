@@ -2,7 +2,7 @@
 
 Typical usage::
 
-    import nanonet as nn
+    import nanonet_ml as nn
 
     model = nn.Sequential(
         nn.Linear(4, 8),
@@ -15,8 +15,8 @@ Typical usage::
 
 from __future__ import annotations
 
-from nanonet._version import __version__
-from nanonet.layers import (
+from nanonet_ml._version import __version__
+from nanonet_ml.layers import (
     Dense,
     Dropout,
     Flatten,
@@ -30,11 +30,11 @@ from nanonet.layers import (
     softmax,
     tanh,
 )
-from nanonet.losses import CrossEntropyLoss, MSELoss
-from nanonet.nn import Module, Parameter, Sequential
-from nanonet.optimizers import SGD, Adam, Optimizer
-from nanonet.tensor import Tensor, no_grad
-from nanonet.utils import manual_seed
+from nanonet_ml.losses import CrossEntropyLoss, MSELoss
+from nanonet_ml.nn import Module, Parameter, Sequential
+from nanonet_ml.optimizers import SGD, Adam, Optimizer
+from nanonet_ml.tensor import Tensor, no_grad
+from nanonet_ml.utils import manual_seed
 
 __all__ = [
     "__version__",

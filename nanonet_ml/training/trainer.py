@@ -6,14 +6,14 @@ from typing import Any
 
 import numpy as np
 
-from nanonet.data.dataloader import DataLoader
-from nanonet.data.dataset import TensorDataset
-from nanonet.losses.cross_entropy import CrossEntropyLoss
-from nanonet.metrics.accuracy import accuracy
-from nanonet.nn.module import Module
-from nanonet.optimizers.optimizer import Optimizer
-from nanonet.tensor import Tensor, no_grad
-from nanonet.training.history import History
+from nanonet_ml.data.dataloader import DataLoader
+from nanonet_ml.data.dataset import TensorDataset
+from nanonet_ml.losses.cross_entropy import CrossEntropyLoss
+from nanonet_ml.metrics.accuracy import accuracy
+from nanonet_ml.nn.module import Module
+from nanonet_ml.optimizers.optimizer import Optimizer
+from nanonet_ml.tensor import Tensor, no_grad
+from nanonet_ml.training.history import History
 
 
 class Trainer:

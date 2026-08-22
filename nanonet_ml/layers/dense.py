@@ -6,10 +6,10 @@ from collections.abc import Callable
 
 import numpy as np
 
-from nanonet.nn.initializers import kaiming_uniform, zeros
-from nanonet.nn.module import Module
-from nanonet.nn.parameter import Parameter
-from nanonet.tensor import Tensor
+from nanonet_ml.nn.initializers import kaiming_uniform, zeros
+from nanonet_ml.nn.module import Module
+from nanonet_ml.nn.parameter import Parameter
+from nanonet_ml.tensor import Tensor
 
 
 class Dense(Module):
@@ -87,7 +87,7 @@ class Linear(Dense):
     """Fully-connected linear layer.
 
     Identical to :class:`Dense`. Provided as a familiar public alias for
-    ``import nanonet as nn`` / ``nn.Linear(...)`` usage.
+    ``import nanonet_ml as nn`` / ``nn.Linear(...)`` usage.
     """
 
     pass

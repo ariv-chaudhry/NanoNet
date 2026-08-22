@@ -8,16 +8,16 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from nanonet.nn.parameter import Parameter
-from nanonet.tensor import Tensor, no_grad
+from nanonet_ml.nn.parameter import Parameter
+from nanonet_ml.tensor import Tensor, no_grad
 
 if TYPE_CHECKING:
-    from nanonet.inspection.report import (
+    from nanonet_ml.inspection.report import (
         DiagnosticsReport,
         ModelInspectionReport,
         ModelTrace,
     )
-    from nanonet.inspection.thresholds import DiagnosticThresholds
+    from nanonet_ml.inspection.thresholds import DiagnosticThresholds
 
 
 class Module:
@@ -227,7 +227,7 @@ class Module:
         input_shape: tuple[int, ...],
     ) -> dict[str, str]:
         """Best-effort shape inference via a detached forward pass."""
-        from nanonet.nn.sequential import Sequential
+        from nanonet_ml.nn.sequential import Sequential
 
         shapes: dict[str, str] = {}
         if not isinstance(self, Sequential):
@@ -256,25 +256,25 @@ class Module:
 
     def save(self, path: str | Any) -> None:
         """Save parameters to an ``.npz`` file."""
-        from nanonet.serialization import save_model
+        from nanonet_ml.serialization import save_model
 
         save_model(self, path)
 
     def load(self, path: str | Any) -> None:
         """Load parameters from an ``.npz`` file."""
-        from nanonet.serialization import load_model
+        from nanonet_ml.serialization import load_model
 
         load_model(self, path)
 
     def fit(self, *args: Any, **kwargs: Any) -> Any:
-        """Convenience training wrapper; see ``nanonet.training.Trainer``."""
-        from nanonet.training.trainer import Trainer
+        """Convenience training wrapper; see ``nanonet_ml.training.Trainer``."""
+        from nanonet_ml.training.trainer import Trainer
 
         return Trainer(self).fit(*args, **kwargs)
 
     def evaluate(self, *args: Any, **kwargs: Any) -> Any:
         """Convenience evaluation wrapper."""
-        from nanonet.training.trainer import Trainer
+        from nanonet_ml.training.trainer import Trainer
 
         return Trainer(self).evaluate(*args, **kwargs)
 
@@ -293,13 +293,13 @@ class Module:
                 If False, return the report without printing.
 
         Returns:
-            A :class:`~nanonet.inspection.ModelInspectionReport`.
+            A :class:`~nanonet_ml.inspection.ModelInspectionReport`.
 
         Notes:
             Does not update parameters, clear gradients, or leave instrumentation
             installed. Forward errors propagate after cleanup.
         """
-        from nanonet.inspection import inspect_model
+        from nanonet_ml.inspection import inspect_model
 
         return inspect_model(self, x, verbose=verbose)
 
@@ -324,13 +324,13 @@ class Module:
                 If False, return the trace without printing.
 
         Returns:
-            A :class:`~nanonet.inspection.ModelTrace`.
+            A :class:`~nanonet_ml.inspection.ModelTrace`.
 
         Notes:
             Does not modify parameters or existing gradients. Forward errors
             propagate after instrumentation cleanup.
         """
-        from nanonet.inspection import trace_model
+        from nanonet_ml.inspection import trace_model
 
         return trace_model(self, x, verbose=verbose)
 
@@ -355,15 +355,15 @@ class Module:
             x: Optional sample input for activation diagnostics.
             verbose: If True (default), print the formatted report to stdout.
                 If False, return the report without printing.
-            thresholds: Optional :class:`~nanonet.inspection.DiagnosticThresholds`.
+            thresholds: Optional :class:`~nanonet_ml.inspection.DiagnosticThresholds`.
 
         Returns:
-            A :class:`~nanonet.inspection.DiagnosticsReport`.
+            A :class:`~nanonet_ml.inspection.DiagnosticsReport`.
 
         Notes:
             Does not modify parameters, inputs, or existing gradients.
             Forward errors propagate after instrumentation cleanup.
         """
-        from nanonet.inspection import diagnose_model
+        from nanonet_ml.inspection import diagnose_model
 
         return diagnose_model(self, x, verbose=verbose, thresholds=thresholds)

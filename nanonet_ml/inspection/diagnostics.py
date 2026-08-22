@@ -6,18 +6,18 @@ from typing import Any
 
 import numpy as np
 
-from nanonet.inspection.checks import build_context, run_all_checks
-from nanonet.inspection.formatter import format_diagnostics_report
-from nanonet.inspection.instrumentation import run_observed_forward
-from nanonet.inspection.report import (
+from nanonet_ml.inspection.checks import build_context, run_all_checks
+from nanonet_ml.inspection.formatter import format_diagnostics_report
+from nanonet_ml.inspection.instrumentation import run_observed_forward
+from nanonet_ml.inspection.report import (
     ActivationStats,
     DiagnosticsReport,
     RuntimeActivationRecord,
 )
-from nanonet.inspection.thresholds import DEFAULT_THRESHOLDS, DiagnosticThresholds
-from nanonet.inspection.utils import activation_stats
-from nanonet.nn.module import Module
-from nanonet.tensor import Tensor
+from nanonet_ml.inspection.thresholds import DEFAULT_THRESHOLDS, DiagnosticThresholds
+from nanonet_ml.inspection.utils import activation_stats
+from nanonet_ml.nn.module import Module
+from nanonet_ml.tensor import Tensor
 
 
 def _saturation_fraction(

@@ -7,10 +7,10 @@ import json
 import numpy as np
 import pytest
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.layers import Dense, ReLU
-from nanonet.losses import MSELoss
-from nanonet.nn import Module
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.layers import Dense, ReLU
+from nanonet_ml.losses import MSELoss
+from nanonet_ml.nn import Module
 
 
 def _model() -> Sequential:

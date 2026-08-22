@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from nanonet import Tensor
-from nanonet.losses import CrossEntropyLoss, MSELoss
+from nanonet_ml import Tensor
+from nanonet_ml.losses import CrossEntropyLoss, MSELoss
 
 
 def test_mse_known_value():

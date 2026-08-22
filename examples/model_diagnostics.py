@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-import nanonet as nn
+import nanonet_ml as nn
 
 
 def main() -> None:

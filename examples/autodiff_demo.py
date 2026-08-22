@@ -1,6 +1,6 @@
 """Demonstrate NanoNet automatic differentiation."""
 
-import nanonet as nn
+import nanonet_ml as nn
 
 
 def main() -> None:

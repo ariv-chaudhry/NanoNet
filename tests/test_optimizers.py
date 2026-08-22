@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from nanonet import Tensor, manual_seed
-from nanonet.layers import Dense
-from nanonet.nn import Parameter
-from nanonet.optimizers import SGD, Adam
+from nanonet_ml import Tensor, manual_seed
+from nanonet_ml.layers import Dense
+from nanonet_ml.nn import Parameter
+from nanonet_ml.optimizers import SGD, Adam
 
 
 def test_sgd_moves_against_gradient():

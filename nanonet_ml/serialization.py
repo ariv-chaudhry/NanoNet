@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from nanonet.nn.module import Module
+from nanonet_ml.nn.module import Module
 
 
 def _normalize_npz_path(
@@ -94,7 +94,7 @@ def load_model(
         raise FileNotFoundError(
             f"Model metadata not found: {meta_path}. "
             "Re-save the model with "
-            "nanonet.serialization.save_model."
+            "nanonet_ml.serialization.save_model."
         )
 
     meta = json.loads(

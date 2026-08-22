@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from nanonet import Tensor
-from nanonet.gradcheck import gradcheck
-from nanonet.layers import ReLU, Sigmoid, Softmax, Tanh, relu, sigmoid
-from nanonet.layers.activations import softmax
+from nanonet_ml import Tensor
+from nanonet_ml.gradcheck import gradcheck
+from nanonet_ml.layers import ReLU, Sigmoid, Softmax, Tanh, relu, sigmoid
+from nanonet_ml.layers.activations import softmax
 
 
 def test_relu():

@@ -7,16 +7,16 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import Any
 
-from nanonet.inspection.formatter import format_execution_trace
-from nanonet.inspection.instrumentation import unique_leaf_modules
-from nanonet.inspection.report import ModelTrace, TensorTraceInfo, TraceStep
-from nanonet.inspection.utils import (
+from nanonet_ml.inspection.formatter import format_execution_trace
+from nanonet_ml.inspection.instrumentation import unique_leaf_modules
+from nanonet_ml.inspection.report import ModelTrace, TensorTraceInfo, TraceStep
+from nanonet_ml.inspection.utils import (
     collect_tensors,
     count_parameters,
     extract_tensor_metadata,
 )
-from nanonet.nn.module import Module
-from nanonet.tensor import Tensor
+from nanonet_ml.nn.module import Module
+from nanonet_ml.tensor import Tensor
 
 
 class _TensorIdRegistry:

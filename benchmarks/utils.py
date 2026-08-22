@@ -55,7 +55,7 @@ def require_torch():
     except ImportError as exc:
         raise SystemExit(
             "PyTorch is required for this evaluation script.\n"
-            "Install with: pip install 'nanonet[benchmark]'"
+            "Install with: pip install 'nanonet-ml[benchmark]'"
         ) from exc
     return torch
 
@@ -68,12 +68,12 @@ def environment_metadata(
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Collect lightweight, cross-platform environment metadata."""
-    import nanonet
+    import nanonet_ml
 
     meta: dict[str, Any] = {
         "timestamp_utc": datetime.now(UTC).isoformat(),
         "python_version": sys.version.split()[0],
-        "nanonet_version": getattr(nanonet, "__version__", "unknown"),
+        "nanonet_version": getattr(nanonet_ml, "__version__", "unknown"),
         "numpy_version": np.__version__,
         "os": platform.platform(),
         "processor": platform.processor() or platform.machine(),
@@ -166,8 +166,8 @@ def save_json(path: Path, payload: dict[str, Any]) -> Path:
 
 def nanonet_mlp(sizes: Sequence[int]):
     """Build a NanoNet MLP: sizes[0] -> ... -> sizes[-1] with ReLU between Denses."""
-    from nanonet import Sequential
-    from nanonet.layers import Dense, ReLU
+    from nanonet_ml import Sequential
+    from nanonet_ml.layers import Dense, ReLU
 
     layers: list[Any] = []
     for i in range(len(sizes) - 1):

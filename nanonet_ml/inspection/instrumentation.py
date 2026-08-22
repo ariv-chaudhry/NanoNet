@@ -7,9 +7,9 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from typing import Any
 
-from nanonet.inspection.utils import first_arg, leaf_modules
-from nanonet.nn.module import Module
-from nanonet.tensor import Tensor, no_grad
+from nanonet_ml.inspection.utils import first_arg, leaf_modules
+from nanonet_ml.nn.module import Module
+from nanonet_ml.tensor import Tensor, no_grad
 
 
 def unique_leaf_modules(model: Module) -> list[tuple[str, Module]]:

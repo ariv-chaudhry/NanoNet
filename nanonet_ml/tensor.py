@@ -14,10 +14,10 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from nanonet.utils import unbroadcast
+from nanonet_ml.utils import unbroadcast
 
 if TYPE_CHECKING:
-    from nanonet.inspection.report import ComputationGraph
+    from nanonet_ml.inspection.report import ComputationGraph
 
 _grad_enabled: ContextVar[bool] = ContextVar("nanonet_grad_enabled", default=True)
 
@@ -472,7 +472,7 @@ class Tensor:
         """Inspect the autograd computation graph ending at this tensor.
 
         Traverses ``_parents`` / ``_grad_fn`` from this tensor (the root) and
-        builds a structured :class:`~nanonet.inspection.ComputationGraph`.
+        builds a structured :class:`~nanonet_ml.inspection.ComputationGraph`.
         Does not call ``backward()``, clear gradients, or mutate the graph.
 
         Gradient presence (``has_grad``) reflects whatever is already stored
@@ -484,9 +484,9 @@ class Tensor:
                 If False, return the graph without printing.
 
         Returns:
-            A :class:`~nanonet.inspection.ComputationGraph`.
+            A :class:`~nanonet_ml.inspection.ComputationGraph`.
         """
-        from nanonet.inspection.graph import inspect_computation_graph
+        from nanonet_ml.inspection.graph import inspect_computation_graph
 
         return inspect_computation_graph(self, verbose=verbose)
 

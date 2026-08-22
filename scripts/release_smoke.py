@@ -2,20 +2,20 @@
 """Public-API smoke test for an installed NanoNet distribution.
 
 Intended for clean wheel installs and the release workflow. Uses only the
-public ``import nanonet as nn`` surface.
+public ``import nanonet_ml as nn`` surface.
 """
 
 from __future__ import annotations
 
 import numpy as np
 
-import nanonet as nn
+import nanonet_ml as nn
 
 
 def main() -> None:
     from importlib.metadata import version as pkg_version
 
-    installed = pkg_version("nanonet")
+    installed = pkg_version("nanonet-ml")
     assert nn.__version__ == installed, (nn.__version__, installed)
 
     nn.manual_seed(0)

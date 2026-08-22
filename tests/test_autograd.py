@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from nanonet import Tensor
-from nanonet.utils import unbroadcast
+from nanonet_ml import Tensor
+from nanonet_ml.utils import unbroadcast
 
 
 def test_simple_derivative():

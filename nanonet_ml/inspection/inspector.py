@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from nanonet.inspection.formatter import format_inspection_report
-from nanonet.inspection.instrumentation import run_observed_forward
-from nanonet.inspection.report import LayerInspection, ModelInspectionReport
-from nanonet.inspection.utils import (
+from nanonet_ml.inspection.formatter import format_inspection_report
+from nanonet_ml.inspection.instrumentation import run_observed_forward
+from nanonet_ml.inspection.report import LayerInspection, ModelInspectionReport
+from nanonet_ml.inspection.utils import (
     activation_stats,
     count_parameters,
     gradient_stats_rows,
@@ -15,8 +15,8 @@ from nanonet.inspection.utils import (
     parameter_memory_bytes,
     shape_of,
 )
-from nanonet.nn.module import Module
-from nanonet.tensor import Tensor
+from nanonet_ml.nn.module import Module
+from nanonet_ml.tensor import Tensor
 
 # Re-export for backward-compatible imports from inspector.
 __all__ = [
@@ -32,7 +32,7 @@ def iter_named_modules(
     *,
     include_root: bool = True,
 ) -> list[tuple[str, Module]]:
-    from nanonet.inspection.utils import iter_named_modules as _iter
+    from nanonet_ml.inspection.utils import iter_named_modules as _iter
 
     return _iter(module, prefix, include_root=include_root)
 

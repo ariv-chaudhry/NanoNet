@@ -1,4 +1,4 @@
-"""Tests for the public ``import nanonet as nn`` package API."""
+"""Tests for the public ``import nanonet_ml as nn`` package API."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from contextlib import redirect_stdout
 
 import numpy as np
 
-import nanonet as nn
+import nanonet_ml as nn
 
 
 def test_version():
@@ -23,7 +23,7 @@ def test_public_symbols_present():
 
 def test_star_import_only_exports_all():
     namespace: dict = {}
-    exec("from nanonet import *", namespace)  # noqa: S102
+    exec("from nanonet_ml import *", namespace)  # noqa: S102
     public = {k for k in namespace if k in nn.__all__}
     assert public == set(nn.__all__)
     assert "inspect_model" not in namespace

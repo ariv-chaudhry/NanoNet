@@ -53,9 +53,9 @@ def run_parity(
     torch = require_torch()
     import torch.nn as nn
 
-    from nanonet import Tensor
-    from nanonet.losses import CrossEntropyLoss
-    from nanonet.optimizers import SGD
+    from nanonet_ml import Tensor
+    from nanonet_ml.losses import CrossEntropyLoss
+    from nanonet_ml.optimizers import SGD
 
     set_global_seeds(seed)
     rng = np.random.default_rng(seed)

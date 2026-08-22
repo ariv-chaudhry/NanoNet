@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from nanonet.tensor import Tensor
+from nanonet_ml.tensor import Tensor
 
 
 class Parameter(Tensor):

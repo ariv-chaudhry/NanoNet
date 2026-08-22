@@ -292,7 +292,7 @@ A tensor may affect a result through more than one path.
 For example:
 
 ```python
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 x = Tensor(
     2.0,
@@ -343,7 +343,7 @@ NanoNet also allows repeated backward calls on the same graph.
 For example:
 
 ```python
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 x = Tensor(
     2.0,

@@ -60,9 +60,9 @@ def _train_nanonet_epochs(
     lr: float,
     seed: int,
 ) -> tuple[object, list[float], float]:
-    from nanonet import Tensor
-    from nanonet.losses import CrossEntropyLoss
-    from nanonet.optimizers import SGD
+    from nanonet_ml import Tensor
+    from nanonet_ml.losses import CrossEntropyLoss
+    from nanonet_ml.optimizers import SGD
 
     model = nanonet_mlp(ARCH)
     assign_numpy_params_to_nanonet(model, params)
@@ -146,8 +146,8 @@ def _train_pytorch_epochs(
 
 
 def _eval_nanonet(model, X: np.ndarray, y: np.ndarray) -> tuple[float, float]:
-    from nanonet import Tensor, no_grad
-    from nanonet.metrics import accuracy
+    from nanonet_ml import Tensor, no_grad
+    from nanonet_ml.metrics import accuracy
 
     t0 = time.perf_counter()
     model.eval()
@@ -183,7 +183,7 @@ def run_mnist_comparison(
     require_torch()
     set_global_seeds(seed)
 
-    from nanonet.data import load_mnist
+    from nanonet_ml.data import load_mnist
 
     print("Loading MNIST...")
     try:

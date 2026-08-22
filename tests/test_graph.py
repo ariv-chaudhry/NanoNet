@@ -7,11 +7,11 @@ from contextlib import redirect_stdout
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.inspection import ComputationGraph
-from nanonet.layers import Dense, ReLU
-from nanonet.losses import MSELoss
-from nanonet.nn import Parameter
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.inspection import ComputationGraph
+from nanonet_ml.layers import Dense, ReLU
+from nanonet_ml.losses import MSELoss
+from nanonet_ml.nn import Parameter
 
 
 def test_simple_mul_graph():

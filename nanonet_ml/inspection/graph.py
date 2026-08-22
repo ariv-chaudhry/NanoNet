@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from nanonet.inspection.formatter import format_computation_graph
-from nanonet.inspection.report import (
+from nanonet_ml.inspection.formatter import format_computation_graph
+from nanonet_ml.inspection.report import (
     ComputationGraph,
     GraphEdge,
     GraphOperationNode,
     GraphTensorNode,
 )
-from nanonet.inspection.utils import extract_tensor_metadata
-from nanonet.nn.parameter import Parameter
-from nanonet.tensor import Tensor
+from nanonet_ml.inspection.utils import extract_tensor_metadata
+from nanonet_ml.nn.parameter import Parameter
+from nanonet_ml.tensor import Tensor
 
 
 def _topo_leaves_to_root(root: Tensor) -> list[Tensor]:

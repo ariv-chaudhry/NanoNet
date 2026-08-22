@@ -1,5 +1,5 @@
 """Evaluation metrics."""
 
-from nanonet.metrics.accuracy import accuracy
+from nanonet_ml.metrics.accuracy import accuracy
 
 __all__ = ["accuracy"]

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 
 def test_tensor_attributes():
@@ -289,7 +289,7 @@ def test_matmul_batched_broadcast_backward():
 
 
 def test_no_grad_disables_graph_construction_and_restores_state():
-    from nanonet import no_grad
+    from nanonet_ml import no_grad
 
     x = Tensor(2.0, requires_grad=True)
 

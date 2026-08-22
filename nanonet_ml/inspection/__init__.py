@@ -1,7 +1,7 @@
 """Model inspection and explainability utilities."""
 
-from nanonet.inspection.diagnostics import diagnose_model
-from nanonet.inspection.formatter import (
+from nanonet_ml.inspection.diagnostics import diagnose_model
+from nanonet_ml.inspection.formatter import (
     format_bytes,
     format_computation_graph,
     format_diagnostics_report,
@@ -11,9 +11,9 @@ from nanonet.inspection.formatter import (
     format_scientific,
     format_shape,
 )
-from nanonet.inspection.graph import build_computation_graph, inspect_computation_graph
-from nanonet.inspection.inspector import inspect_model, leaf_modules
-from nanonet.inspection.report import (
+from nanonet_ml.inspection.graph import build_computation_graph, inspect_computation_graph
+from nanonet_ml.inspection.inspector import inspect_model, leaf_modules
+from nanonet_ml.inspection.report import (
     ActivationStats,
     ComputationGraph,
     DiagnosticFinding,
@@ -29,8 +29,8 @@ from nanonet.inspection.report import (
     TensorTraceInfo,
     TraceStep,
 )
-from nanonet.inspection.thresholds import DEFAULT_THRESHOLDS, DiagnosticThresholds
-from nanonet.inspection.tracer import trace_model
+from nanonet_ml.inspection.thresholds import DEFAULT_THRESHOLDS, DiagnosticThresholds
+from nanonet_ml.inspection.tracer import trace_model
 
 __all__ = [
     "ActivationStats",

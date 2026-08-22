@@ -10,9 +10,9 @@ import time
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.layers import Dense, ReLU
-from nanonet.losses import MSELoss
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.layers import Dense, ReLU
+from nanonet_ml.losses import MSELoss
 
 
 def _bench(label: str, fn, repeats: int = 50) -> float:

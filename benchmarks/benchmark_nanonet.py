@@ -9,10 +9,10 @@ from pathlib import Path
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed, no_grad
-from nanonet.layers import Dense, ReLU
-from nanonet.losses import CrossEntropyLoss
-from nanonet.optimizers import Adam
+from nanonet_ml import Sequential, Tensor, manual_seed, no_grad
+from nanonet_ml.layers import Dense, ReLU
+from nanonet_ml.losses import CrossEntropyLoss
+from nanonet_ml.optimizers import Adam
 
 
 def build_model() -> Sequential:

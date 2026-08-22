@@ -111,7 +111,7 @@ class DiagnosticsReport:
     gradients_available: bool = False
 
     def __str__(self) -> str:
-        from nanonet.inspection.formatter import format_diagnostics_report
+        from nanonet_ml.inspection.formatter import format_diagnostics_report
 
         return format_diagnostics_report(self)
 
@@ -190,7 +190,7 @@ class ModelInspectionReport:
     extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
     def __str__(self) -> str:
-        from nanonet.inspection.formatter import format_inspection_report
+        from nanonet_ml.inspection.formatter import format_inspection_report
 
         return format_inspection_report(self)
 
@@ -282,7 +282,7 @@ class ModelTrace:
     output: Any = field(default=None, repr=False)
 
     def __str__(self) -> str:
-        from nanonet.inspection.formatter import format_execution_trace
+        from nanonet_ml.inspection.formatter import format_execution_trace
 
         return format_execution_trace(self)
 
@@ -368,7 +368,7 @@ class ComputationGraph:
     parameter_count: int
 
     def __str__(self) -> str:
-        from nanonet.inspection.formatter import format_computation_graph
+        from nanonet_ml.inspection.formatter import format_computation_graph
 
         return format_computation_graph(self)
 

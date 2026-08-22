@@ -34,6 +34,13 @@ NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
 
 ## Installation
 
+NanoNet is the project name. The installable PyPI distribution is `nanonet-ml`,
+and the Python import package is `nanonet_ml`:
+
+```python
+import nanonet_ml as nn
+```
+
 ### From source (current)
 
 ```bash
@@ -45,7 +52,7 @@ python -m pip install -e ".[dev]"
 ### From PyPI (after `0.1.0` is published)
 
 ```bash
-pip install nanonet
+pip install nanonet-ml
 ```
 
 Until the first PyPI release is live, use the source install above.
@@ -57,7 +64,7 @@ for the publication process.
 ## Quickstart
 
 ```python
-import nanonet as nn
+import nanonet_ml as nn
 import numpy as np
 
 nn.manual_seed(0)
@@ -103,7 +110,7 @@ Observability (methods)
   Tensor.graph
 ```
 
-`Linear` is an alias of `Dense`. Report types live under `nanonet.inspection`
+`Linear` is an alias of `Dense`. Report types live under `nanonet_ml.inspection`
 for programmatic use; everyday workflows use the methods above.
 
 ---
@@ -151,95 +158,95 @@ NanoNet currently includes:
 
 ### Automatic Differentiation
 
-- reverse-mode automatic differentiation
-- computational graph construction
-- topological backward traversal
-- gradient accumulation
-- repeated backward passes
-- NumPy-style broadcasting gradients
-- numerical gradient checking
+* reverse-mode automatic differentiation
+* computational graph construction
+* topological backward traversal
+* gradient accumulation
+* repeated backward passes
+* NumPy-style broadcasting gradients
+* numerical gradient checking
 
 ### Tensor Operations
 
-- addition
-- subtraction
-- multiplication
-- division
-- powers
-- negation
-- sum
-- mean
-- reshape
-- transpose
-- indexing
-- exponential
-- logarithm
-- element-wise maximum
-- NumPy-style `matmul`
+* addition
+* subtraction
+* multiplication
+* division
+* powers
+* negation
+* sum
+* mean
+* reshape
+* transpose
+* indexing
+* exponential
+* logarithm
+* element-wise maximum
+* NumPy-style `matmul`
 
 Matrix multiplication supports:
 
-- vector @ vector
-- matrix @ vector
-- vector @ matrix
-- matrix @ matrix
-- batched matrix multiplication
-- broadcast batch dimensions
+* vector @ vector
+* matrix @ vector
+* vector @ matrix
+* matrix @ matrix
+* batched matrix multiplication
+* broadcast batch dimensions
 
 ### Neural-Network Components
 
-- `Parameter`
-- `Module`
-- `Sequential`
-- `Dense`
-- `ReLU`
-- `Sigmoid`
-- `Tanh`
-- `Softmax`
-- `Dropout`
-- `Flatten`
+* `Parameter`
+* `Module`
+* `Sequential`
+* `Dense`
+* `ReLU`
+* `Sigmoid`
+* `Tanh`
+* `Softmax`
+* `Dropout`
+* `Flatten`
 
 ### Loss Functions
 
-- Mean Squared Error
-- numerically stable Cross Entropy
+* Mean Squared Error
+* numerically stable Cross Entropy
 
 ### Optimizers
 
-- SGD
-- momentum
-- L2 weight decay
-- Adam
+* SGD
+* momentum
+* L2 weight decay
+* Adam
 
 NanoNet's Adam weight decay is implemented as **coupled L2
 regularization**, not AdamW-style decoupled weight decay.
 
 ### Data
 
-- Dataset abstraction
-- `TensorDataset`
-- mini-batch `DataLoader`
-- optional shuffling
-- deterministic seeding
-- MNIST downloading and caching
+* Dataset abstraction
+* `TensorDataset`
+* mini-batch `DataLoader`
+* optional shuffling
+* deterministic seeding
+* MNIST downloading and caching
 
 ### Training
 
-- reusable `Trainer`
-- `model.fit(...)`
-- `model.evaluate(...)`
-- validation metrics
-- training history
-- plotting support
-- `no_grad()` inference
+* reusable `Trainer`
+* `model.fit(...)`
+* `model.evaluate(...)`
+* validation metrics
+* training history
+* plotting support
+* `no_grad()` inference
 
 ### Model Utilities
 
-- parameter counting
-- model summaries
-- `state_dict()`
-- `.npz` serialization
-- JSON parameter metadata
+* parameter counting
+* model summaries
+* `state_dict()`
+* `.npz` serialization
+* JSON parameter metadata
 
 ---
 
@@ -327,10 +334,10 @@ NumPy
 A simple classifier can be created using:
 
 ```python
-from nanonet import Sequential, manual_seed
-from nanonet.layers import Dense, ReLU, Dropout
-from nanonet.losses import CrossEntropyLoss
-from nanonet.optimizers import Adam
+from nanonet_ml import Sequential, manual_seed
+from nanonet_ml.layers import Dense, ReLU, Dropout
+from nanonet_ml.losses import CrossEntropyLoss
+from nanonet_ml.optimizers import Adam
 
 manual_seed(42)
 
@@ -379,7 +386,7 @@ The core of NanoNet is its automatic-differentiation engine.
 Consider:
 
 ```python
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 x = Tensor(
     3.0,
@@ -571,7 +578,7 @@ batched matrix @ batched matrix
 For example:
 
 ```python
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 a = Tensor(
     [1.0, 2.0, 3.0],
@@ -604,8 +611,8 @@ X @ W
 Models can be assembled with `Sequential`.
 
 ```python
-from nanonet import Sequential
-from nanonet.layers import Dense, ReLU
+from nanonet_ml import Sequential
+from nanonet_ml.layers import Dense, ReLU
 
 model = Sequential([
     Dense(784, 128),
@@ -641,7 +648,7 @@ print(
 NanoNet includes a reusable training loop.
 
 ```python
-from nanonet.training import Trainer
+from nanonet_ml.training import Trainer
 
 trainer = Trainer(model)
 
@@ -694,7 +701,7 @@ model.eval()
 To disable autograd graph construction:
 
 ```python
-from nanonet import no_grad
+from nanonet_ml import no_grad
 
 with no_grad():
     predictions = model(inputs)
@@ -871,10 +878,10 @@ python examples/mnist_mlp.py \
 
 Results vary depending on:
 
-- initialization
-- random seed
-- training configuration
-- number of epochs
+* initialization
+* random seed
+* training configuration
+* number of epochs
 
 The downloaded MNIST files are cached under:
 
@@ -911,8 +918,8 @@ NanoNet therefore includes numerical gradient checking.
 Example:
 
 ```python
-from nanonet import Tensor
-from nanonet.gradcheck import gradcheck
+from nanonet_ml import Tensor
+from nanonet_ml.gradcheck import gradcheck
 
 a = Tensor(
     [1.5, -2.0],
@@ -1030,12 +1037,12 @@ Shape inference is performed without constructing an autograd graph.
 NanoNet makes neural-network internals observable through model inspection,
 execution tracing, autograd graph inspection, and evidence-based diagnostics.
 
-| API | Purpose |
-| --- | --- |
-| `model.inspect()` | Model structure, parameters, shapes, and statistics |
-| `model.trace(x)` | Actual module execution order for an input |
-| `tensor.graph()` | Autograd operation / dependency graph |
-| `model.diagnose(x)` | Numerical and optimization warning checks |
+| API                 | Purpose                                             |
+| ------------------- | --------------------------------------------------- |
+| `model.inspect()`   | Model structure, parameters, shapes, and statistics |
+| `model.trace(x)`    | Actual module execution order for an input          |
+| `tensor.graph()`    | Autograd operation / dependency graph               |
+| `model.diagnose(x)` | Numerical and optimization warning checks           |
 
 All four APIs share the same conventions:
 
@@ -1109,11 +1116,11 @@ NanoNet is not designed to outperform PyTorch.
 
 PyTorch benefits from:
 
-- optimized C/C++ kernels
-- optimized BLAS implementations
-- sophisticated memory management
-- GPU acceleration
-- years of production optimization
+* optimized C/C++ kernels
+* optimized BLAS implementations
+* sophisticated memory management
+* GPU acceleration
+* years of production optimization
 
 NanoNet intentionally prioritizes readability.
 
@@ -1150,29 +1157,29 @@ For mathematical validation and MNIST learning comparison, see
 
 NanoNet has been compared against PyTorch for:
 
-- forward-pass numerical agreement
-- loss agreement
-- gradient agreement
-- SGD update agreement
-- multi-trial training/inference runtime
-- workload scaling
-- matched MNIST learning performance
+* forward-pass numerical agreement
+* loss agreement
+* gradient agreement
+* SGD update agreement
+* multi-trial training/inference runtime
+* workload scaling
+* matched MNIST learning performance
 
 Full methodology, environment metadata, interpretation, and limitations:
 **[docs/evaluation.md](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/evaluation.md)**.
 
 ### Snapshot results (measured, CPU, float64)
 
-| Evaluation | Result |
-|---|---:|
-| Forward max abs. error | 2.22e-16 |
-| Loss abs. error | 2.22e-16 |
-| Gradient max abs. error | 1.11e-16 |
-| Post-SGD parameter max error | 8.67e-19 |
-| NanoNet MNIST accuracy (5k/1k, 1 epoch, SGD) | 66.50% |
-| PyTorch MNIST accuracy (matched) | 66.50% |
-| Train slowdown @ 5k samples (mean of 5 runs) | ~3.1× |
-| Infer slowdown @ 256-batch (mean of 5 runs) | ~9.5× |
+| Evaluation                                   |   Result |
+| -------------------------------------------- | -------: |
+| Forward max abs. error                       | 2.22e-16 |
+| Loss abs. error                              | 2.22e-16 |
+| Gradient max abs. error                      | 1.11e-16 |
+| Post-SGD parameter max error                 | 8.67e-19 |
+| NanoNet MNIST accuracy (5k/1k, 1 epoch, SGD) |   66.50% |
+| PyTorch MNIST accuracy (matched)             |   66.50% |
+| Train slowdown @ 5k samples (mean of 5 runs) |    ~3.1× |
+| Infer slowdown @ 256-batch (mean of 5 runs)  |    ~9.5× |
 
 Runtime values are machine-dependent (recorded on Windows 11 / Intel CPU;
 see JSON under `results/`).
@@ -1201,33 +1208,33 @@ Run coverage with:
 
 ```bash
 pytest \
-    --cov=nanonet \
+    --cov=nanonet_ml \
     --cov-report=term-missing
 ```
 
 Run Ruff with:
 
 ```bash
-ruff check nanonet tests
+ruff check nanonet_ml tests
 ```
 
 NanoNet's tests cover areas such as:
 
-- Tensor operations
-- reverse-mode autodiff
-- branching graphs
-- repeated backward calls
-- broadcasting
-- matrix multiplication
-- vector MatMul
-- batched MatMul
-- losses
-- class-label validation
-- optimizers
-- gradient checking
-- model serialization
-- training
-- graph-free evaluation
+* Tensor operations
+* reverse-mode autodiff
+* branching graphs
+* repeated backward calls
+* broadcasting
+* matrix multiplication
+* vector MatMul
+* batched MatMul
+* losses
+* class-label validation
+* optimizers
+* gradient checking
+* model serialization
+* training
+* graph-free evaluation
 
 ---
 
@@ -1295,7 +1302,7 @@ python examples/observability_workflow.py
 
 ```text
 NanoNet/
-├── nanonet/
+├── nanonet_ml/
 │   ├── __init__.py
 │   ├── tensor.py
 │   ├── autograd.py
@@ -1387,10 +1394,10 @@ Trainer
 
 More detailed explanations are available in:
 
-- [`docs/architecture.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/architecture.md)
-- [`docs/autodiff.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/autodiff.md)
-- [`docs/backpropagation.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/backpropagation.md)
-- [`docs/optimizers.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/optimizers.md)
+* [`docs/architecture.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/architecture.md)
+* [`docs/autodiff.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/autodiff.md)
+* [`docs/backpropagation.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/backpropagation.md)
+* [`docs/optimizers.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/optimizers.md)
 
 ---
 
@@ -1400,15 +1407,15 @@ NanoNet is intentionally small.
 
 Current limitations include:
 
-- CPU / NumPy computation only
-- no CUDA backend
-- no convolutional layers
-- no pooling layers
-- no batch normalization
-- no multiprocessing DataLoader
-- no distributed training
-- no mixed-precision training
-- no explicit computational-graph freeing API
+* CPU / NumPy computation only
+* no CUDA backend
+* no convolutional layers
+* no pooling layers
+* no batch normalization
+* no multiprocessing DataLoader
+* no distributed training
+* no mixed-precision training
+* no explicit computational-graph freeing API
 
 The project currently focuses on fully connected neural networks and the
 mechanics behind their training.
@@ -1424,14 +1431,14 @@ the project's goal than attempting to recreate all of PyTorch.
 
 Possible future additions include:
 
-- Conv2D
-- MaxPool2D
-- BatchNorm
-- learning-rate schedulers
-- additional datasets
-- additional examples
-- optional GPU experiments
-- mixed-precision experiments
+* Conv2D
+* MaxPool2D
+* BatchNorm
+* learning-rate schedulers
+* additional datasets
+* additional examples
+* optional GPU experiments
+* mixed-precision experiments
 
 The goal is to add features when they introduce an interesting implementation
 or mathematical concept rather than simply increasing the feature count.

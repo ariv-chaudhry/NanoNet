@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import argparse
 
-import nanonet as nn
-from nanonet.data import load_mnist
+import nanonet_ml as nn
+from nanonet_ml.data import load_mnist
 
 
 def parse_args() -> argparse.Namespace:

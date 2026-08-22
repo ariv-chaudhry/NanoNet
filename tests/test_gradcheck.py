@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.gradcheck import gradcheck
-from nanonet.layers import Dense, ReLU
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.gradcheck import gradcheck
+from nanonet_ml.layers import Dense, ReLU
 
 
 def test_gradcheck_mul():

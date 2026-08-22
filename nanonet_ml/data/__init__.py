@@ -1,8 +1,8 @@
 """Data loading utilities."""
 
-from nanonet.data.dataloader import DataLoader
-from nanonet.data.dataset import Dataset, TensorDataset
-from nanonet.data.mnist import download_mnist, load_mnist
+from nanonet_ml.data.dataloader import DataLoader
+from nanonet_ml.data.dataset import Dataset, TensorDataset
+from nanonet_ml.data.mnist import download_mnist, load_mnist
 
 __all__ = [
     "Dataset",

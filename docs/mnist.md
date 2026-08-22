@@ -9,7 +9,7 @@ MNIST contains 70,000 handwritten digit images (0–9):
 * 28×28 grayscale pixels
 
 NanoNet downloads the original IDX `.gz` files into `data/mnist/` (gitignored)
-via `nanonet.data.load_mnist` or `scripts/download_mnist.py`.
+via `nanonet_ml.data.load_mnist` or `scripts/download_mnist.py`.
 
 ## Preprocessing
 

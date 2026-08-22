@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from nanonet.data import download_mnist
+from nanonet_ml.data import download_mnist
 
 
 def main() -> None:

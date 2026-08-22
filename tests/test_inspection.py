@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.inspection import ModelInspectionReport, format_inspection_report
-from nanonet.layers import Dense, ReLU
-from nanonet.losses import MSELoss
-from nanonet.nn import Module
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.inspection import ModelInspectionReport, format_inspection_report
+from nanonet_ml.layers import Dense, ReLU
+from nanonet_ml.losses import MSELoss
+from nanonet_ml.nn import Module
 
 
 def _mlp() -> Sequential:
@@ -99,7 +99,7 @@ def test_no_side_effects_on_parameters_or_hooks():
     manual_seed(2)
     model = Sequential(Dense(4, 6), ReLU(), Dense(6, 3))
     state_before = model.state_dict()
-    from nanonet.inspection.inspector import leaf_modules
+    from nanonet_ml.inspection.inspector import leaf_modules
 
     leaves = leaf_modules(model)
     assert "forward" not in leaves[0][1].__dict__

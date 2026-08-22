@@ -6,7 +6,7 @@ import math
 
 import numpy as np
 
-from nanonet.utils import get_rng
+from nanonet_ml.utils import get_rng
 
 
 def zeros(shape: tuple[int, ...]) -> np.ndarray:

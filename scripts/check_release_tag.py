@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail if the GitHub release tag does not match nanonet.__version__.
+"""Fail if the GitHub release tag does not match nanonet_ml.__version__.
 
 Expects ``RELEASE_TAG`` (e.g. ``v0.1.0``) in the environment.
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from nanonet._version import __version__  # noqa: E402
+from nanonet_ml._version import __version__  # noqa: E402
 
 
 def main() -> int:

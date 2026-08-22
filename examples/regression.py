@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-import nanonet as nn
+import nanonet_ml as nn
 
 
 def main() -> None:

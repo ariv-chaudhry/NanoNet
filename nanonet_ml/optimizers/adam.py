@@ -6,8 +6,8 @@ from collections.abc import Iterable
 
 import numpy as np
 
-from nanonet.nn.parameter import Parameter
-from nanonet.optimizers.optimizer import Optimizer
+from nanonet_ml.nn.parameter import Parameter
+from nanonet_ml.optimizers.optimizer import Optimizer
 
 
 class Adam(Optimizer):

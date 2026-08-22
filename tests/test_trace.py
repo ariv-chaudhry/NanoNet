@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.inspection import ModelTrace
-from nanonet.layers import Dense, ReLU
-from nanonet.losses import MSELoss
-from nanonet.nn import Module
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.inspection import ModelTrace
+from nanonet_ml.layers import Dense, ReLU
+from nanonet_ml.losses import MSELoss
+from nanonet_ml.nn import Module
 
 
 def test_basic_sequential_trace_order_and_shapes():
@@ -156,7 +156,7 @@ def test_repeated_traces_no_instrumentation_leak():
     for _ in range(3):
         t = model.trace(x, verbose=False)
         assert len(t.steps) == 3
-    from nanonet.inspection.inspector import leaf_modules
+    from nanonet_ml.inspection.inspector import leaf_modules
 
     for _n, mod in leaf_modules(model):
         assert "forward" not in mod.__dict__
@@ -171,7 +171,7 @@ def test_failed_forward_cleans_instrumentation():
         raise AssertionError("expected ValueError")
     except ValueError:
         pass
-    from nanonet.inspection.inspector import leaf_modules
+    from nanonet_ml.inspection.inspector import leaf_modules
 
     for _n, mod in leaf_modules(model):
         assert "forward" not in mod.__dict__

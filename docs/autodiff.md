@@ -17,7 +17,7 @@ graph.
 For example:
 
 ```python
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 x = Tensor(2.0, requires_grad=True)
 
@@ -194,7 +194,7 @@ NanoNet accumulates gradients in each tensor's `.grad` attribute.
 For example:
 
 ```python
-from nanonet import Tensor
+from nanonet_ml import Tensor
 
 x = Tensor(2.0, requires_grad=True)
 
@@ -396,7 +396,7 @@ memory.
 NanoNet provides:
 
 ```python
-from nanonet import no_grad
+from nanonet_ml import no_grad
 ```
 
 which can be used as:
@@ -487,8 +487,8 @@ automatic differentiation.
 Example:
 
 ```python
-from nanonet import Tensor
-from nanonet.gradcheck import gradcheck
+from nanonet_ml import Tensor
+from nanonet_ml.gradcheck import gradcheck
 
 a = Tensor(
     [1.5, -2.0],

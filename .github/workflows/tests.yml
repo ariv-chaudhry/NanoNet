@@ -25,12 +25,22 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Run tests
-        run: pytest -v --cov=nanonet --cov-report=term-missing
+        run: pytest -v --cov=nanonet_ml --cov-report=term-missing
 
       - name: Ruff check
-        run: ruff check nanonet tests examples benchmarks
+        run: ruff check nanonet_ml tests examples benchmarks
 
       - name: Build package
         run: |
           python -m build
           python -m twine check dist/*
+
+      - name: Clean wheel smoke install
+        run: |
+          python -m venv .venv-package-test
+          .venv-package-test/bin/python -m pip install --upgrade pip
+          .venv-package-test/bin/python -m pip install dist/*.whl
+          REPO="$PWD"
+          cd /tmp
+          "$REPO/.venv-package-test/bin/python" -c "import nanonet_ml as nn; assert nn.__version__ == '0.1.0'; print(nn.__version__, nn.__file__)"
+          "$REPO/.venv-package-test/bin/python" "$REPO/scripts/release_smoke.py"

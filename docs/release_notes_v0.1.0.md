@@ -15,16 +15,16 @@ PyTorch.
 - computation graph inspection with `tensor.graph()`
 - diagnostics with `model.diagnose(x)`
 - benchmarking against reference frameworks
-- installable package: `pip install nanonet`
+- installable package: `pip install nanonet-ml`
 
 ## Installation
 
 ```bash
-pip install nanonet
+pip install nanonet-ml
 ```
 
 ```python
-import nanonet as nn
+import nanonet_ml as nn
 ```
 
 ## License

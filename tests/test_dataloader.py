@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from nanonet.data import DataLoader, TensorDataset
+from nanonet_ml.data import DataLoader, TensorDataset
 
 
 def test_tensor_dataset():

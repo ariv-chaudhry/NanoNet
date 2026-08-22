@@ -12,6 +12,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Release engineering: PyPI Trusted Publishing workflow, `RELEASING.md`, and
   release smoke / tag-consistency scripts
 
+### Changed
+
+- Python import package renamed to `nanonet_ml` and PyPI distribution name set to
+  `nanonet-ml` to avoid colliding with an existing `nanonet` package on PyPI.
+  Project branding remains **NanoNet**. Recommended usage:
+  `import nanonet_ml as nn`.
+
 ## [0.1.0] - Unreleased
 
 First public package release.
@@ -34,4 +41,5 @@ tagging `v0.1.0`. See `RELEASING.md`.
 - Autograd computation graph inspection with `tensor.graph()`
 - Evidence-based model diagnostics with `model.diagnose()`
 - Benchmarking / comparison infrastructure against reference frameworks
-- Installable public package API (`import nanonet as nn`)
+- Installable public package API (`import nanonet_ml as nn`)
+- PyPI distribution `nanonet-ml` (import package `nanonet_ml`)

@@ -17,7 +17,7 @@ def main() -> None:
     except ImportError as exc:
         raise SystemExit(
             "PyTorch is not installed. Install with: "
-            "pip install 'nanonet[benchmark]' "
+            "pip install 'nanonet-ml[benchmark]' "
             "or pip install torch"
         ) from exc
 

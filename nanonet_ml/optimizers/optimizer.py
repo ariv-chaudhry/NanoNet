@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from nanonet.nn.parameter import Parameter
+from nanonet_ml.nn.parameter import Parameter
 
 
 class Optimizer:

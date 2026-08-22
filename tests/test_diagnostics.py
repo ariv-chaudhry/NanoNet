@@ -8,11 +8,11 @@ from contextlib import redirect_stdout
 import numpy as np
 import pytest
 
-from nanonet import Sequential, Tensor, manual_seed
-from nanonet.inspection import DiagnosticsReport, DiagnosticThresholds
-from nanonet.layers import Dense, ReLU, Sigmoid, Tanh
-from nanonet.losses import MSELoss
-from nanonet.nn import Module, Parameter
+from nanonet_ml import Sequential, Tensor, manual_seed
+from nanonet_ml.inspection import DiagnosticsReport, DiagnosticThresholds
+from nanonet_ml.layers import Dense, ReLU, Sigmoid, Tanh
+from nanonet_ml.losses import MSELoss
+from nanonet_ml.nn import Module, Parameter
 
 
 def _clean_mlp() -> Sequential:

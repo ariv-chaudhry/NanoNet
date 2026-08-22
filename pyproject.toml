@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nanonet"
+name = "nanonet-ml"
 dynamic = ["version"]
 description = "A lightweight neural-network framework with built-in model inspection, execution tracing, autograd graph exploration, and diagnostics."
 readme = "README.md"
@@ -67,19 +67,19 @@ Repository = "https://github.com/ariv-chaudhry/NanoNet"
 Issues = "https://github.com/ariv-chaudhry/NanoNet/issues"
 
 [tool.setuptools.packages.find]
-include = ["nanonet*"]
+include = ["nanonet_ml*"]
 
 [tool.setuptools.dynamic]
-version = { attr = "nanonet._version.__version__" }
+version = { attr = "nanonet_ml._version.__version__" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
 
 [tool.coverage.run]
-source = ["nanonet"]
+source = ["nanonet_ml"]
 omit = [
-    "nanonet/data/mnist.py",
+    "nanonet_ml/data/mnist.py",
 ]
 
 [tool.coverage.report]
