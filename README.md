@@ -43,21 +43,33 @@ import nanonet_ml as nn
 
 ### From source (current)
 
+## Installation
+
+NanoNet is the project name. The PyPI distribution is `nanonet-ml`, and the
+Python import package is `nanonet_ml`.
+
+Install NanoNet from PyPI:
+
+```bash
+pip install nanonet-ml
+```
+
+Then import it with:
+
+```python
+import nanonet_ml as nn
+```
+
+### From source
+
 ```bash
 git clone https://github.com/ariv-chaudhry/NanoNet.git
 cd NanoNet
 python -m pip install -e ".[dev]"
 ```
 
-### From PyPI (after `0.1.0` is published)
-
-```bash
-pip install nanonet-ml
-```
-
-Until the first PyPI release is live, use the source install above.
 See [RELEASING.md](https://github.com/ariv-chaudhry/NanoNet/blob/main/RELEASING.md)
-for the publication process.
+for the release process.
 
 ---
 

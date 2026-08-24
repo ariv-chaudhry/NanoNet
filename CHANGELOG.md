@@ -7,39 +7,43 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-23
+
+First public release of NanoNet.
+
+NanoNet is a lightweight neural-network framework built from scratch in Python
+with transparent automatic differentiation, training utilities, and built-in
+model observability.
+
 ### Added
 
-- Release engineering: PyPI Trusted Publishing workflow, `RELEASING.md`, and
-  release smoke / tag-consistency scripts
+- Tensor operations with reverse-mode automatic differentiation
+- Neural-network modules including `Module`, `Parameter`, and `Sequential`
+- `Dense` / `Linear` layers
+- Activation functions including `ReLU`, `Sigmoid`, `Tanh`, and `Softmax`
+- `Dropout` and `Flatten`
+- Loss functions including `MSELoss` and `CrossEntropyLoss`
+- Optimizers including `SGD` and `Adam`
+- Data loading and training utilities
+- Model serialization and state management
+- Model inspection with `model.inspect()`
+- Forward execution tracing with `model.trace(...)`
+- Autograd computation graph inspection with `tensor.graph()`
+- Model diagnostics with `model.diagnose(...)`
+- Empirical benchmarking and numerical comparisons against PyTorch
+- Public package distribution through PyPI
+- Support for installation with `pip install nanonet-ml`
+- Public import namespace `nanonet_ml`
+- Versioned package API with `nanonet_ml.__version__`
 
 ### Changed
 
-- Python import package renamed to `nanonet_ml` and PyPI distribution name set to
-  `nanonet-ml` to avoid colliding with an existing `nanonet` package on PyPI.
-  Project branding remains **NanoNet**. Recommended usage:
-  `import nanonet_ml as nn`.
+- Renamed the Python package namespace from `nanonet` to `nanonet_ml`
+- Set the PyPI distribution name to `nanonet-ml`
+- Updated tests, examples, benchmarks, documentation, and CI to use the new namespace
+- Updated packaging and release infrastructure for the first public release
 
-## [0.1.0] - Unreleased
+### Notes
 
-First public package release.
-
-NanoNet is a lightweight neural-network framework designed around transparent
-internals and built-in observability. It is pre-1.0; public APIs may evolve.
-
-Set the release date (YYYY-MM-DD) in the release-preparation commit before
-tagging `v0.1.0`. See `RELEASING.md`.
-
-### Added
-
-- Tensor-based reverse-mode automatic differentiation
-- Neural-network modules (`Module`, `Sequential`, `Parameter`)
-- Layers including `Dense` / `Linear`, activations, `Dropout`, and `Flatten`
-- Losses (`MSELoss`, `CrossEntropyLoss`) and optimizers (`SGD`, `Adam`)
-- Data loading utilities and a lightweight trainer
-- Model inspection with `model.inspect()`
-- Forward execution tracing with `model.trace(x)`
-- Autograd computation graph inspection with `tensor.graph()`
-- Evidence-based model diagnostics with `model.diagnose()`
-- Benchmarking / comparison infrastructure against reference frameworks
-- Installable public package API (`import nanonet_ml as nn`)
-- PyPI distribution `nanonet-ml` (import package `nanonet_ml`)
+NanoNet remains a pre-1.0 project. Public APIs may continue to evolve as the
+framework develops.
