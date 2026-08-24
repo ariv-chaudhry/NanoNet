@@ -54,6 +54,7 @@ jobs:
 
   publish:
     name: Publish to PyPI
+    if: github.event.release.tag_name != 'v0.1.0'
     needs: build
     runs-on: ubuntu-latest
     environment:
