@@ -14,12 +14,22 @@ class LogDataset:
     converts one line (without trailing newline characters) into a numerical
     sample compatible with :class:`~nanonet_ml.data.dataloader.DataLoader`.
 
-    Parsing is lazy: lines are loaded at construction time, but ``parser`` runs
-    only when a sample is accessed via ``__getitem__``.
+    Args:
+        path: Path to a line-oriented text file (any extension).
+        parser: Callable that receives one logical line and returns a sample.
+            Output may be feature-only or ``(features, target)``; structure is
+            unrestricted except by downstream DataLoader compatibility.
+        encoding: Text encoding used to decode the file. Defaults to ``"utf-8"``.
+        skip_blank_lines: If ``True``, omit blank and whitespace-only physical
+            lines from the dataset. Defaults to ``False`` (Stage 1 behavior).
 
-    Parser output may be feature-only (e.g. a list of floats) or supervised
-    ``(features, target)``. :class:`~nanonet_ml.data.dataloader.DataLoader`
-    collates samples into NumPy batches using its existing behavior.
+    Notes:
+        * One kept logical line corresponds to one dataset record.
+        * Newline terminators (``\\n``, ``\\r\\n``) are removed; other whitespace
+          on nonblank lines is preserved.
+        * Semantic parsing is lazy: ``parser`` runs only in ``__getitem__``.
+        * Parser failures raise ``ValueError`` with file path, physical line
+          number (1-based), and dataset index, chaining the original exception.
 
     Example::
 
@@ -28,30 +38,50 @@ class LogDataset:
             levels = {"INFO": 0.0, "WARNING": 1.0, "ERROR": 2.0}
             return [levels[level], float(status)]
 
-        dataset = LogDataset("server.log", parser=parse)
+        dataset = LogDataset(
+            "server.log",
+            parser=parse,
+            encoding="utf-8",
+            skip_blank_lines=True,
+        )
     """
 
     def __init__(
         self,
         path: str | Path,
         parser: Callable[[str], Any],
+        *,
+        encoding: str = "utf-8",
+        skip_blank_lines: bool = False,
     ) -> None:
         if not callable(parser):
             raise TypeError(f"parser must be callable, got {type(parser).__name__}.")
         path = Path(path)
-        # UTF-8; FileNotFoundError propagates for missing paths.
-        text = path.read_text(encoding="utf-8")
+        # FileNotFoundError / UnicodeDecodeError / LookupError propagate normally.
+        text = path.read_text(encoding=encoding)
         # splitlines() drops \\n / \\r\\n without stripping other whitespace.
-        self._lines = text.splitlines()
+        records: list[tuple[int, str]] = []
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            if skip_blank_lines and line.strip() == "":
+                continue
+            records.append((line_no, line))
+        self._records = records
         self._path = path
         self.parser = parser
 
     def __len__(self) -> int:
-        return len(self._lines)
+        return len(self._records)
 
     def __getitem__(self, index: int) -> Any:
         if index < 0:
             index += len(self)
         if index < 0 or index >= len(self):
             raise IndexError(f"Index {index} out of range for dataset of size {len(self)}.")
-        return self.parser(self._lines[index])
+        line_no, line = self._records[index]
+        try:
+            return self.parser(line)
+        except Exception as exc:
+            raise ValueError(
+                f"Failed to parse log record at line {line_no} in '{self._path}' "
+                f"(dataset index {index})."
+            ) from exc

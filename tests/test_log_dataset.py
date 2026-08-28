@@ -166,3 +166,175 @@ def test_dataloader_supervised_batches(tmp_path: Path):
     assert labels.shape == (2,)
     assert np.allclose(features, [[0.0, 200.0], [2.0, 500.0]])
     assert np.array_equal(labels, [0, 1])
+
+
+# --- Stage 2: robustness -------------------------------------------------
+
+
+def test_default_utf8_compatible_without_encoding_kwarg(tmp_path: Path):
+    path = _write_log(tmp_path / "server.log", "INFO 200\n")
+    dataset = LogDataset(path, parser=lambda line: line)
+    assert dataset[0] == "INFO 200"
+
+
+def test_configurable_latin1_encoding(tmp_path: Path):
+    path = tmp_path / "latin1.log"
+    # 0xE9 is 'é' in latin-1; proves configured decoding is used.
+    path.write_bytes(b"INFO caf\xe9\n")
+
+    dataset = LogDataset(path, parser=lambda line: line, encoding="latin-1")
+    assert dataset[0] == "INFO café"
+
+
+def test_utf8_decode_error(tmp_path: Path):
+    path = tmp_path / "bad-utf8.log"
+    path.write_bytes(b"\xff\xfe\n")
+    with pytest.raises(UnicodeDecodeError):
+        LogDataset(path, parser=lambda line: line)
+
+
+def test_blank_lines_preserved_by_default(tmp_path: Path):
+    path = _write_log(tmp_path / "blank.log", "INFO 200\n\nERROR 500\n")
+    dataset = LogDataset(path, parser=lambda line: line)
+    assert len(dataset) == 3
+    assert dataset[1] == ""
+
+
+def test_skip_blank_lines_true(tmp_path: Path):
+    path = _write_log(tmp_path / "blank.log", "INFO 200\n\n   \nERROR 500\n")
+    dataset = LogDataset(path, parser=lambda line: line, skip_blank_lines=True)
+    assert len(dataset) == 2
+    assert dataset[0] == "INFO 200"
+    assert dataset[1] == "ERROR 500"
+
+
+def test_nonblank_whitespace_preserved(tmp_path: Path):
+    path = _write_log(tmp_path / "ws.log", "   INFO 200   \n")
+    seen: list[str] = []
+
+    def parse(line: str):
+        seen.append(line)
+        return line
+
+    dataset = LogDataset(path, parser=parse)
+    assert dataset[0] == "   INFO 200   "
+    assert seen == ["   INFO 200   "]
+
+
+def test_physical_line_numbers_survive_blank_filtering(tmp_path: Path):
+    path = _write_log(tmp_path / "server.log", "valid\n\nmalformed\n")
+
+    def parse(line: str):
+        if line == "malformed":
+            raise ValueError("bad record")
+        return line
+
+    dataset = LogDataset(path, parser=parse, skip_blank_lines=True)
+    assert len(dataset) == 2
+    with pytest.raises(ValueError, match=r"line 3") as info:
+        _ = dataset[1]
+    assert "dataset index 1" in str(info.value)
+    assert "server.log" in str(info.value)
+
+
+def test_parser_error_includes_context(tmp_path: Path):
+    path = _write_log(tmp_path / "server.log", "INFO 200\nBAD\n")
+
+    def parse(line: str):
+        if line == "BAD":
+            raise KeyError("level")
+        return line
+
+    dataset = LogDataset(path, parser=parse)
+    with pytest.raises(ValueError, match="Failed to parse log record") as info:
+        _ = dataset[1]
+    msg = str(info.value)
+    assert "line 2" in msg
+    assert "server.log" in msg
+    assert "dataset index 1" in msg
+
+
+def test_parser_error_chains_original_exception(tmp_path: Path):
+    path = _write_log(tmp_path / "server.log", "BAD\n")
+
+    def parse(line: str):
+        raise KeyError("missing")
+
+    dataset = LogDataset(path, parser=parse)
+    with pytest.raises(ValueError) as info:
+        _ = dataset[0]
+    assert isinstance(info.value.__cause__, KeyError)
+    assert info.value.__cause__.args == ("missing",)
+
+
+def test_parser_errors_remain_lazy(tmp_path: Path):
+    path = _write_log(tmp_path / "server.log", "ok\nBAD\n")
+
+    def parse(line: str):
+        if line == "BAD":
+            raise ValueError("boom")
+        return line
+
+    dataset = LogDataset(path, parser=parse)
+    assert len(dataset) == 2
+    with pytest.raises(ValueError, match="Failed to parse"):
+        _ = dataset[1]
+
+
+def test_valid_lines_around_malformed_still_work(tmp_path: Path):
+    path = _write_log(tmp_path / "server.log", "valid-a\nmalformed\nvalid-b\n")
+
+    def parse(line: str):
+        if line == "malformed":
+            raise RuntimeError("nope")
+        return line
+
+    dataset = LogDataset(path, parser=parse)
+    assert dataset[0] == "valid-a"
+    with pytest.raises(ValueError, match="line 2"):
+        _ = dataset[1]
+    assert dataset[2] == "valid-b"
+
+
+def test_crlf_handling(tmp_path: Path):
+    path = tmp_path / "crlf.log"
+    path.write_bytes(b"INFO 200\r\nERROR 500\r\n")
+    seen: list[str] = []
+
+    def parse(line: str):
+        seen.append(line)
+        return line
+
+    dataset = LogDataset(path, parser=parse)
+    assert seen == []  # lazy until access
+    assert dataset[0] == "INFO 200"
+    assert dataset[1] == "ERROR 500"
+    assert all("\r" not in s and "\n" not in s for s in seen)
+
+
+def test_all_blank_file_with_skipping(tmp_path: Path):
+    path = _write_log(tmp_path / "blanks.log", "\n   \n\t\n")
+    dataset = LogDataset(path, parser=lambda line: line, skip_blank_lines=True)
+    assert len(dataset) == 0
+
+
+def test_dataloader_with_skip_blank_lines(tmp_path: Path):
+    path = _write_log(
+        tmp_path / "server.log",
+        "INFO 200 12\n\nERROR 500 83\nWARN 429 21\n",
+    )
+
+    def parse(line: str):
+        level, status, latency = line.split()
+        levels = {"INFO": 0.0, "WARN": 1.0, "ERROR": 2.0}
+        return [levels[level], float(status), float(latency)]
+
+    dataset = LogDataset(path, parser=parse, skip_blank_lines=True)
+    loader = DataLoader(dataset, batch_size=2, shuffle=False)
+    batches = list(loader)
+    assert len(dataset) == 3
+    assert len(batches) == 2
+    assert isinstance(batches[0], np.ndarray)
+    assert batches[0].shape == (2, 3)
+    assert np.allclose(batches[0], [[0.0, 200.0, 12.0], [2.0, 500.0, 83.0]])
+    assert batches[1].shape == (1, 3)
