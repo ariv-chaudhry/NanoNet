@@ -1,20 +1,37 @@
-"""Dataset abstraction."""
+"""Dataset abstraction for indexable sample collections."""
 
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
+from abc import ABC, abstractmethod
+from typing import Any, Generic, TypeVar
+
+T_co = TypeVar("T_co", covariant=True)
 
 
-@runtime_checkable
-class Dataset(Protocol):
-    """Minimal dataset protocol inspired by common ML frameworks."""
+class Dataset(ABC, Generic[T_co]):
+    """Indexable collection of samples.
 
-    def __len__(self) -> int: ...
+    Subclasses define how samples are stored or generated. A sample may be a
+    single value (for example features) or a structured value such as
+    ``(features, target)``.
 
-    def __getitem__(self, index: int) -> Any: ...
+    This layer does not convert samples into tensors; batching and tensor
+    conversion belong to a separate data-loading step.
+    """
+
+    @abstractmethod
+    def __len__(self) -> int:
+        """Return the number of samples in the dataset."""
+
+    @abstractmethod
+    def __getitem__(self, index: int) -> T_co:
+        """Return the sample at ``index``.
+
+        Negative indices and bounds checking are left to subclasses.
+        """
 
 
-class TensorDataset:
+class TensorDataset(Dataset[Any]):
     """Dataset wrapping aligned NumPy arrays or sequences.
 
     Example::
