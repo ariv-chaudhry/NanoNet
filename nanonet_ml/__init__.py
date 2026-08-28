@@ -15,9 +15,6 @@ Typical usage::
 
 from __future__ import annotations
 
-from importlib import import_module
-from typing import Any
-
 from nanonet_ml._version import __version__
 from nanonet_ml.layers import (
     Dense,
@@ -70,10 +67,3 @@ __all__ = [
     "MSELoss",
     "CrossEntropyLoss",
 ]
-
-
-def __getattr__(name: str) -> Any:
-    """Lazy submodule access (e.g. ``nn.data``) without expanding the top-level API."""
-    if name == "data":
-        return import_module("nanonet_ml.data")
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
