@@ -34,27 +34,14 @@ NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
 
 ## Installation
 
-NanoNet is the project name. The installable PyPI distribution is `nanonet-ml`,
-and the Python import package is `nanonet_ml`:
-
-```python
-import nanonet_ml as nn
-```
-
-### From source (current)
-
-## Installation
-
 NanoNet is the project name. The PyPI distribution is `nanonet-ml`, and the
 Python import package is `nanonet_ml`.
 
-Install NanoNet from PyPI:
+Install from PyPI:
 
 ```bash
 pip install nanonet-ml
 ```
-
-Then import it with:
 
 ```python
 import nanonet_ml as nn
@@ -120,6 +107,10 @@ Losses
 Observability (methods)
   Module.inspect, Module.trace, Module.diagnose
   Tensor.graph
+
+Data (`nanonet_ml.data`)
+  Dataset, TensorDataset, DataLoader, LogDataset
+  load_mnist, download_mnist
 ```
 
 `Linear` is an alias of `Dense`. Report types live under `nanonet_ml.inspection`
@@ -235,12 +226,53 @@ regularization**, not AdamW-style decoupled weight decay.
 
 ### Data
 
-* Dataset abstraction
-* `TensorDataset`
-* mini-batch `DataLoader`
-* optional shuffling
-* deterministic seeding
+NanoNet provides a general data pipeline:
+
+```text
+Dataset  →  DataLoader  →  NanoNet training
+```
+
+Concrete sources include:
+
+* Dataset protocol (`__len__` / `__getitem__`)
+* `TensorDataset` for in-memory arrays
+* mini-batch `DataLoader` (shuffle, deterministic seeding, NumPy collation)
+* `LogDataset` for parser-driven line-oriented log files
+* configurable log encoding and optional blank-line filtering
+* contextual parsing diagnostics (file + physical line number)
 * MNIST downloading and caching
+
+`LogDataset` does not interpret log semantics automatically — you supply a
+parser that turns each line into features or `(features, target)`. See
+[`docs/data.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/data.md)
+and `examples/log_anomaly_detection.py`.
+
+```python
+from nanonet_ml.data import DataLoader, LogDataset
+
+def parse_log(line: str):
+    level, status, latency = line.split()
+    levels = {"INFO": 0.0, "WARNING": 1.0, "ERROR": 2.0}
+    return [levels[level], float(status), float(latency)]
+
+dataset = LogDataset(
+    "server.log",
+    parser=parse_log,
+    skip_blank_lines=True,
+)
+
+loader = DataLoader(dataset, batch_size=32, shuffle=True)
+for batch in loader:
+    ...
+```
+
+Parsers may also return supervised samples:
+
+```python
+def parse_log(line: str):
+    ...
+    return features, label
+```
 
 ### Training
 
@@ -1278,6 +1310,14 @@ python examples/regression.py
 python examples/mnist_mlp.py
 ```
 
+## Log anomaly classification
+
+End-to-end parser-driven log anomaly classification using `LogDataset`:
+
+```bash
+python examples/log_anomaly_detection.py
+```
+
 ## Model Inspection
 
 ```bash
@@ -1336,6 +1376,8 @@ NanoNet/
 │   ├── xor.py
 │   ├── regression.py
 │   ├── mnist_mlp.py
+│   ├── log_anomaly_detection.py
+│   ├── data/
 │   ├── model_inspection.py
 │   ├── execution_trace.py
 │   ├── computation_graph.py
@@ -1409,6 +1451,7 @@ More detailed explanations are available in:
 * [`docs/architecture.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/architecture.md)
 * [`docs/autodiff.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/autodiff.md)
 * [`docs/backpropagation.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/backpropagation.md)
+* [`docs/data.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/data.md)
 * [`docs/optimizers.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/optimizers.md)
 
 ---

@@ -4,7 +4,6 @@ This document describes how to publish NanoNet to PyPI.
 
 **Import name:** `nanonet_ml` (`import nanonet_ml as nn`)  
 **Distribution name:** `nanonet-ml` (`pip install nanonet-ml`)  
-**First release:** `0.1.0` (tag `v0.1.0`)
 
 NanoNet is currently pre-1.0. Public APIs may evolve.
 
@@ -13,10 +12,11 @@ NanoNet is currently pre-1.0. Public APIs may evolve.
 ## Prerequisites
 
 - [ ] `main` is clean and up to date
+- [ ] Feature work is merged into `main`
 - [ ] All CI checks are green on the release commit
 - [ ] Canonical version in `nanonet_ml/_version.py` matches the intended release
-- [ ] `CHANGELOG.md` has a dated `0.1.0` (or later) section — not `Unreleased`
-- [ ] README installation section is ready for `pip install nanonet-ml` (commit with or right after publish)
+- [ ] `CHANGELOG.md` has a dated `X.Y.Z` section for this release — not only `Unreleased`
+- [ ] README and docs match the release
 - [ ] PyPI **Trusted Publisher** configured (see below)
 - [ ] GitHub Environment `pypi` exists (optional protection rules recommended)
 - [ ] Workflow `.github/workflows/publish.yml` is on `main`
@@ -29,7 +29,7 @@ Publication uses GitHub Actions OIDC. **Do not create or store a PyPI API token 
 
 1. Sign in to [PyPI](https://pypi.org/) (create an account if needed).
 2. Open **Publishing** / **Trusted publishers**.
-3. Because the project may not exist yet, create a **Pending Trusted Publisher** with:
+3. Configure a Trusted Publisher (or Pending Trusted Publisher) with:
 
 | Field | Value |
 | --- | --- |
@@ -42,8 +42,6 @@ Publication uses GitHub Actions OIDC. **Do not create or store a PyPI API token 
 4. In GitHub: **Settings → Environments → New environment** named exactly `pypi`.
 5. Optionally require reviewers before the publish job runs.
 
-The first successful workflow run after the GitHub Release is published should create/publish the project when the pending publisher matches.
-
 The distribution name is intentionally `nanonet-ml` (not `nanonet`) to avoid colliding
 with an existing PyPI package while keeping the project brand **NanoNet**.
 
@@ -53,7 +51,7 @@ with an existing PyPI package while keeping the project brand **NanoNet**.
 
 ```bash
 python -m pip install -e ".[dev]"
-ruff check .
+ruff check nanonet_ml tests examples benchmarks
 pytest
 python -m build
 python -m twine check dist/*
@@ -62,10 +60,13 @@ python -m twine check dist/*
 Clean-wheel smoke test (use a fresh venv when possible):
 
 ```bash
-python -m pip install dist/nanonet_ml-0.1.0-py3-none-any.whl
+python -m pip install dist/nanonet_ml-<version>-py3-none-any.whl
 # from a directory outside the repository checkout:
 python /path/to/NanoNet/scripts/release_smoke.py
 ```
+
+`scripts/release_smoke.py` checks that `nn.__version__` matches installed
+package metadata and that core public APIs (including `LogDataset`) import.
 
 ---
 
@@ -74,51 +75,51 @@ python /path/to/NanoNet/scripts/release_smoke.py
 1. Edit **only** `nanonet_ml/_version.py` (single source of truth).
 2. Confirm `import nanonet_ml; print(nanonet_ml.__version__)`.
 3. Update `CHANGELOG.md`:
-   - move items under `## [X.Y.Z] - YYYY-MM-DD`
-   - add a fresh `## [Unreleased]` section above for future work
+   - place items under `## [X.Y.Z] - YYYY-MM-DD`
+   - keep a fresh `## [Unreleased]` section above for future work
 
 Do not duplicate the version in `pyproject.toml` (it uses dynamic versioning).
 
 ---
 
-## Release flow (v0.1.0 and later)
+## Release flow
 
 Preferred path: **GitHub Release published → Actions builds → OIDC → PyPI**.
 
-1. Ensure pre-release checks pass.
-2. Commit release preparation (version already `0.1.0`, changelog dated, docs ready):
+Replace `X.Y.Z` with the version being released (for example `0.2.0`).
+
+1. Ensure pre-release checks pass on the release commit.
+2. Merge the release-prep branch into `main` if work is not already on `main`.
+3. Commit release preparation on `main` if needed (version, changelog, docs):
 
    ```text
-   chore: prepare v0.1.0 release
+   chore: prepare vX.Y.Z release
    ```
 
-3. Push to `main`.
-4. Create and push the tag (or create the tag when drafting the GitHub Release):
+4. Push `main`.
+5. Create and push the tag (or create the tag when drafting the GitHub Release):
 
    ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
    ```
 
-5. Create a **GitHub Release** for `v0.1.0` and publish it.
-   - Release notes can be copied from `CHANGELOG.md`.
-6. Confirm the **Publish** workflow succeeds (build + smoke + PyPI upload).
-7. Verify from a **brand-new** environment:
+6. Create a **GitHub Release** for `vX.Y.Z` and publish it.
+   - Release notes can be copied from `CHANGELOG.md` / `docs/release_notes_vX.Y.Z.md`.
+7. Confirm the **Publish** workflow succeeds (build + smoke + PyPI upload).
+8. Verify from a **brand-new** environment:
 
    ```bash
-   python -m pip install nanonet-ml==0.1.0
+   python -m pip install nanonet-ml==X.Y.Z
    python -c "import nanonet_ml as nn; print(nn.__version__, nn.__file__)"
    python scripts/release_smoke.py
    ```
 
-8. Update README Installation to:
+Tag / version consistency is enforced by `scripts/check_release_tag.py`:
 
-   ```bash
-   pip install nanonet-ml
-   ```
-
-   if that change was not already in the release commit.
-9. Optionally add a PyPI version badge after the project page exists.
+```text
+RELEASE_TAG=vX.Y.Z  →  nanonet_ml.__version__ must be X.Y.Z
+```
 
 ---
 
@@ -141,36 +142,28 @@ TestPyPI may lack some dependencies; you may need `--extra-index-url https://pyp
 
 ## Immutability and failures
 
-- PyPI versions are **immutable**. Never republish `0.1.0` with different files.
-- If a bug ships after publish, release **`0.1.1`** (or later).
+- PyPI versions are **immutable**. Never republish `X.Y.Z` with different files.
+- If a bug ships after publish, release a newer version (for example `X.Y.Z+1`).
 - If the workflow fails **before** upload, fix and re-run / recreate the release as appropriate.
 - If a release is fundamentally broken, prefer **yanking** on PyPI over pretending the version never existed.
-
-Tag / version consistency is enforced in CI:
-
-```text
-RELEASE_TAG=v0.1.0  →  nanonet_ml.__version__ must be 0.1.0
-```
 
 ---
 
 ## Release checklist
 
 - [ ] Tests pass
-- [ ] Lint passes (`ruff check .`)
+- [ ] Lint passes (`ruff check nanonet_ml tests examples benchmarks`)
 - [ ] Version correct in `nanonet_ml/_version.py`
 - [ ] Changelog dated for this version
 - [ ] `python -m build` succeeds
 - [ ] `python -m twine check dist/*` passes
 - [ ] Clean-wheel install + `scripts/release_smoke.py` succeeds
 - [ ] README reviewed for PyPI strangers
-- [ ] Distribution name `nanonet-ml` confirmed available / reserved via Trusted Publisher
 - [ ] Trusted Publisher pending/active on PyPI
 - [ ] GitHub Environment `pypi` configured
 - [ ] Tag `vX.Y.Z` created
 - [ ] GitHub Release published
 - [ ] Publish workflow succeeded
 - [ ] `pip install nanonet-ml==X.Y.Z` works in a fresh environment
-- [ ] Observability smoke tests pass on the PyPI install
-- [ ] README install command updated / verified
+- [ ] Observability / LogDataset smoke checks pass on the PyPI install
 - [ ] No attempt to overwrite an existing version
