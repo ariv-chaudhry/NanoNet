@@ -18,6 +18,13 @@ def main() -> None:
     installed = pkg_version("nanonet-ml")
     assert nn.__version__ == installed, (nn.__version__, installed)
 
+    # Ensure LogDataset is packaged and importable from the installed wheel.
+    from nanonet_ml.data import DataLoader, LogDataset, TensorDataset
+
+    assert callable(LogDataset)
+    assert callable(DataLoader)
+    assert callable(TensorDataset)
+
     nn.manual_seed(0)
     model = nn.Sequential(
         nn.Linear(4, 8),

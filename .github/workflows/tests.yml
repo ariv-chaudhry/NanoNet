@@ -12,10 +12,10 @@ jobs:
         python-version: ["3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -42,5 +42,5 @@ jobs:
           .venv-package-test/bin/python -m pip install dist/*.whl
           REPO="$PWD"
           cd /tmp
-          "$REPO/.venv-package-test/bin/python" -c "import nanonet_ml as nn; assert nn.__version__ == '0.1.0'; print(nn.__version__, nn.__file__)"
+          "$REPO/.venv-package-test/bin/python" -c "import nanonet_ml as nn; from importlib.metadata import version; assert nn.__version__ == version('nanonet-ml'); from nanonet_ml.data import LogDataset; print(nn.__version__, nn.__file__, LogDataset.__name__)"
           "$REPO/.venv-package-test/bin/python" "$REPO/scripts/release_smoke.py"

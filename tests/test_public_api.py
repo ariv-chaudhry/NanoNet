@@ -12,8 +12,13 @@ import nanonet_ml as nn
 
 
 def test_version():
-    assert nn.__version__ == "0.1.0"
+    from importlib.metadata import version as pkg_version
+
+    from nanonet_ml._version import __version__ as canonical
+
     assert isinstance(nn.__version__, str)
+    assert nn.__version__ == canonical
+    assert nn.__version__ == pkg_version("nanonet-ml")
 
 
 def test_public_symbols_present():

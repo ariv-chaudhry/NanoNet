@@ -7,6 +7,41 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-31
+
+Parser-driven file-backed datasets for NanoNet.
+
+This release adds `LogDataset` on top of NanoNet's existing `Dataset` /
+`DataLoader` architecture. It does not change Tensor, Module, Trainer, or
+optimizer behavior.
+
+### Added
+
+- `LogDataset`: line-oriented, parser-driven dataset for `.log`-style text files
+- Configurable text encoding (`encoding=`, default UTF-8)
+- Optional blank-line filtering (`skip_blank_lines=`)
+- Physical source-line tracking with contextual parser-error diagnostics
+- End-to-end synthetic log anomaly classification example
+  (`examples/log_anomaly_detection.py`)
+- Focused LogDataset and log-example integration tests
+- Dedicated data documentation (`docs/data.md`)
+
+### Changed
+
+- README data documentation updated for the Dataset / DataLoader / LogDataset
+  architecture
+- CI wheel smoke test now checks package metadata against `nn.__version__`
+  dynamically (no hardcoded release number)
+- Release smoke test imports `LogDataset` to verify packaging inclusion
+
+### Notes
+
+`Dataset`, `TensorDataset`, `DataLoader`, and MNIST utilities already existed
+before this release. `LogDataset` is the new file-backed addition and integrates
+with those existing components.
+
+NanoNet remains pre-1.0; public APIs may continue to evolve.
+
 ## [0.1.0] - 2026-08-23
 
 First public release of NanoNet.

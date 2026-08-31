@@ -34,37 +34,40 @@ NanoNet is currently pre-1.0; public APIs may evolve as the framework matures.
 
 ## Installation
 
-NanoNet is the project name. The installable PyPI distribution is `nanonet-ml`,
-and the Python import package is `nanonet_ml`:
-
-```python
-import nanonet_ml as nn
-```
-
-### From source (current)
-
-## Installation
-
 NanoNet is the project name. The PyPI distribution is `nanonet-ml`, and the
 Python import package is `nanonet_ml`.
 
-Install NanoNet from PyPI:
+Install from PyPI:
 
 ```bash
 pip install nanonet-ml
 ```
 
-Then import it with:
-
 ```python
 import nanonet_ml as nn
 ```
+
+The core library only requires NumPy.
 
 ### From source
 
 ```bash
 git clone https://github.com/ariv-chaudhry/NanoNet.git
 cd NanoNet
+python -m venv .venv
+```
+
+Activate the virtual environment:
+
+```bash
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+```
+
+```bash
 python -m pip install -e ".[dev]"
 ```
 
@@ -96,6 +99,41 @@ y.graph()
 model.diagnose(x)
 ```
 
+A familiar training-style workflow looks like:
+
+```python
+import nanonet_ml as nn
+
+nn.manual_seed(42)
+
+model = nn.Sequential(
+    nn.Dense(784, 128),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Dense(128, 64),
+    nn.ReLU(),
+    nn.Dense(64, 10),
+)
+
+optimizer = nn.Adam(model.parameters(), lr=0.001)
+loss_fn = nn.CrossEntropyLoss()
+
+model.fit(
+    X_train,
+    y_train,
+    loss_fn=loss_fn,
+    optimizer=optimizer,
+    epochs=10,
+    batch_size=64,
+)
+
+accuracy = model.evaluate(X_test, y_test)
+print(accuracy)
+```
+
+The API is intentionally familiar if you've used frameworks such as PyTorch
+or Keras, but the underlying implementation is NanoNet's own.
+
 ---
 
 ## Public API
@@ -120,6 +158,10 @@ Losses
 Observability (methods)
   Module.inspect, Module.trace, Module.diagnose
   Tensor.graph
+
+Data (`nanonet_ml.data`)
+  Dataset, TensorDataset, DataLoader, LogDataset
+  load_mnist, download_mnist
 ```
 
 `Linear` is an alias of `Dense`. Report types live under `nanonet_ml.inspection`
@@ -235,12 +277,53 @@ regularization**, not AdamW-style decoupled weight decay.
 
 ### Data
 
-* Dataset abstraction
-* `TensorDataset`
-* mini-batch `DataLoader`
-* optional shuffling
-* deterministic seeding
+NanoNet provides a general data pipeline:
+
+```text
+Dataset  →  DataLoader  →  NanoNet training
+```
+
+Concrete sources include:
+
+* Dataset protocol (`__len__` / `__getitem__`)
+* `TensorDataset` for in-memory arrays
+* mini-batch `DataLoader` (shuffle, deterministic seeding, NumPy collation)
+* `LogDataset` for parser-driven line-oriented log files
+* configurable log encoding and optional blank-line filtering
+* contextual parsing diagnostics (file + physical line number)
 * MNIST downloading and caching
+
+`LogDataset` does not interpret log semantics automatically — you supply a
+parser that turns each line into features or `(features, target)`. See
+[`docs/data.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/data.md)
+and `examples/log_anomaly_detection.py`.
+
+```python
+from nanonet_ml.data import DataLoader, LogDataset
+
+def parse_log(line: str):
+    level, status, latency = line.split()
+    levels = {"INFO": 0.0, "WARNING": 1.0, "ERROR": 2.0}
+    return [levels[level], float(status), float(latency)]
+
+dataset = LogDataset(
+    "server.log",
+    parser=parse_log,
+    skip_blank_lines=True,
+)
+
+loader = DataLoader(dataset, batch_size=32, shuffle=True)
+for batch in loader:
+    ...
+```
+
+Parsers may also return supervised samples:
+
+```python
+def parse_log(line: str):
+    ...
+    return features, label
+```
 
 ### Training
 
@@ -295,99 +378,6 @@ parameter updates.
 
 NanoNet was my way of implementing those mechanics myself instead of only
 using them through another framework.
-
----
-
-# Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/ariv-chaudhry/NanoNet.git
-cd NanoNet
-```
-
-Create a virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-Activate it.
-
-### Linux / macOS
-
-```bash
-source .venv/bin/activate
-```
-
-### Windows PowerShell
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Install NanoNet and the development dependencies:
-
-```bash
-pip install -e ".[dev]"
-```
-
-The core library only requires:
-
-```text
-NumPy
-```
-
----
-
-# Quick Start
-
-A simple classifier can be created using:
-
-```python
-from nanonet_ml import Sequential, manual_seed
-from nanonet_ml.layers import Dense, ReLU, Dropout
-from nanonet_ml.losses import CrossEntropyLoss
-from nanonet_ml.optimizers import Adam
-
-manual_seed(42)
-
-model = Sequential([
-    Dense(784, 128),
-    ReLU(),
-    Dropout(0.2),
-    Dense(128, 64),
-    ReLU(),
-    Dense(64, 10),
-])
-
-optimizer = Adam(
-    model.parameters(),
-    lr=0.001,
-)
-
-loss_fn = CrossEntropyLoss()
-
-model.fit(
-    X_train,
-    y_train,
-    loss_fn=loss_fn,
-    optimizer=optimizer,
-    epochs=10,
-    batch_size=64,
-)
-
-accuracy = model.evaluate(
-    X_test,
-    y_test,
-)
-
-print(accuracy)
-```
-
-The API is intentionally familiar if you've used frameworks such as PyTorch
-or Keras, but the underlying implementation is NanoNet's own.
 
 ---
 
@@ -1227,26 +1217,20 @@ pytest \
 Run Ruff with:
 
 ```bash
-ruff check nanonet_ml tests
+ruff check nanonet_ml tests examples benchmarks
 ```
 
 NanoNet's tests cover areas such as:
 
-* Tensor operations
-* reverse-mode autodiff
-* branching graphs
-* repeated backward calls
-* broadcasting
-* matrix multiplication
-* vector MatMul
-* batched MatMul
-* losses
-* class-label validation
-* optimizers
-* gradient checking
-* model serialization
-* training
-* graph-free evaluation
+* Tensor operations and reverse-mode autodiff
+* neural-network modules, layers, and activations
+* losses and optimizers
+* gradient checking and model serialization
+* training workflows and graph-free evaluation
+* `Dataset` / `TensorDataset` / `DataLoader` behavior
+* `LogDataset` parsing, encodings, blank-line handling, and diagnostics
+* DataLoader batching with log-backed samples
+* end-to-end log anomaly-detection smoke coverage
 
 ---
 
@@ -1276,6 +1260,14 @@ python examples/regression.py
 
 ```bash
 python examples/mnist_mlp.py
+```
+
+## Log anomaly classification
+
+End-to-end parser-driven log anomaly classification using `LogDataset`:
+
+```bash
+python examples/log_anomaly_detection.py
 ```
 
 ## Model Inspection
@@ -1336,6 +1328,8 @@ NanoNet/
 │   ├── xor.py
 │   ├── regression.py
 │   ├── mnist_mlp.py
+│   ├── log_anomaly_detection.py
+│   ├── data/
 │   ├── model_inspection.py
 │   ├── execution_trace.py
 │   ├── computation_graph.py
@@ -1409,6 +1403,7 @@ More detailed explanations are available in:
 * [`docs/architecture.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/architecture.md)
 * [`docs/autodiff.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/autodiff.md)
 * [`docs/backpropagation.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/backpropagation.md)
+* [`docs/data.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/data.md)
 * [`docs/optimizers.md`](https://github.com/ariv-chaudhry/NanoNet/blob/main/docs/optimizers.md)
 
 ---

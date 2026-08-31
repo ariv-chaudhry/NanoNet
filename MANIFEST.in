@@ -1,0 +1,15 @@
+# Source-distribution packaging for NanoNet.
+# Keep the sdist coherent with tests that reference examples/ and benchmarks/.
+# Do not include generated or local artifacts (caches, dist/, MNIST downloads, etc.).
+
+include CHANGELOG.md
+include RELEASING.md
+
+recursive-include docs *.md
+recursive-include examples *.py *.log
+recursive-include benchmarks *.py
+recursive-include scripts *.py
+
+global-exclude *.py[cod]
+global-exclude __pycache__
+global-exclude .DS_Store
