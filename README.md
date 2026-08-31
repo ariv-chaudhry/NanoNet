@@ -47,11 +47,27 @@ pip install nanonet-ml
 import nanonet_ml as nn
 ```
 
+The core library only requires NumPy.
+
 ### From source
 
 ```bash
 git clone https://github.com/ariv-chaudhry/NanoNet.git
 cd NanoNet
+python -m venv .venv
+```
+
+Activate the virtual environment:
+
+```bash
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+```
+
+```bash
 python -m pip install -e ".[dev]"
 ```
 
@@ -82,6 +98,41 @@ model.trace(x)
 y.graph()
 model.diagnose(x)
 ```
+
+A familiar training-style workflow looks like:
+
+```python
+import nanonet_ml as nn
+
+nn.manual_seed(42)
+
+model = nn.Sequential(
+    nn.Dense(784, 128),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Dense(128, 64),
+    nn.ReLU(),
+    nn.Dense(64, 10),
+)
+
+optimizer = nn.Adam(model.parameters(), lr=0.001)
+loss_fn = nn.CrossEntropyLoss()
+
+model.fit(
+    X_train,
+    y_train,
+    loss_fn=loss_fn,
+    optimizer=optimizer,
+    epochs=10,
+    batch_size=64,
+)
+
+accuracy = model.evaluate(X_test, y_test)
+print(accuracy)
+```
+
+The API is intentionally familiar if you've used frameworks such as PyTorch
+or Keras, but the underlying implementation is NanoNet's own.
 
 ---
 
@@ -327,99 +378,6 @@ parameter updates.
 
 NanoNet was my way of implementing those mechanics myself instead of only
 using them through another framework.
-
----
-
-# Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/ariv-chaudhry/NanoNet.git
-cd NanoNet
-```
-
-Create a virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-Activate it.
-
-### Linux / macOS
-
-```bash
-source .venv/bin/activate
-```
-
-### Windows PowerShell
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Install NanoNet and the development dependencies:
-
-```bash
-pip install -e ".[dev]"
-```
-
-The core library only requires:
-
-```text
-NumPy
-```
-
----
-
-# Quick Start
-
-A simple classifier can be created using:
-
-```python
-from nanonet_ml import Sequential, manual_seed
-from nanonet_ml.layers import Dense, ReLU, Dropout
-from nanonet_ml.losses import CrossEntropyLoss
-from nanonet_ml.optimizers import Adam
-
-manual_seed(42)
-
-model = Sequential([
-    Dense(784, 128),
-    ReLU(),
-    Dropout(0.2),
-    Dense(128, 64),
-    ReLU(),
-    Dense(64, 10),
-])
-
-optimizer = Adam(
-    model.parameters(),
-    lr=0.001,
-)
-
-loss_fn = CrossEntropyLoss()
-
-model.fit(
-    X_train,
-    y_train,
-    loss_fn=loss_fn,
-    optimizer=optimizer,
-    epochs=10,
-    batch_size=64,
-)
-
-accuracy = model.evaluate(
-    X_test,
-    y_test,
-)
-
-print(accuracy)
-```
-
-The API is intentionally familiar if you've used frameworks such as PyTorch
-or Keras, but the underlying implementation is NanoNet's own.
 
 ---
 

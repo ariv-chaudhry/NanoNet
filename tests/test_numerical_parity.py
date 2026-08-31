@@ -33,10 +33,11 @@ def test_weight_layout_roundtrip():
     assert np.allclose(w_nn, w_pt.T)
 
 
-def test_numerical_parity_end_to_end():
-    result = run_parity(seed=0, out=None)
-    # Avoid writing during tests if out=None still writes — run_parity always saves.
-    # Check core assertions.
+def test_numerical_parity_end_to_end(tmp_path):
+    # Write into tmp_path so pytest never overwrites tracked results/*.json.
+    output = tmp_path / "numerical_parity.json"
+    result = run_parity(seed=0, out=output)
+
     r = result["results"]
     assert r["forward"]["allclose"]
     assert r["loss"]["allclose"]
@@ -46,6 +47,8 @@ def test_numerical_parity_end_to_end():
     assert r["forward"]["max_abs_error"] < 1e-10
     assert r["gradients"]["overall_max_abs_error"] < 1e-10
     assert r["sgd_update"]["overall_max_abs_error"] < 1e-10
+    assert output.is_file()
+    assert result["_out_path"] == str(output)
 
 
 def test_compare_arrays_detects_mismatch():

@@ -1,0 +1,22 @@
+# Normalize text files to LF in the repository (cross-platform).
+* text=auto
+
+*.py text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.sh text eol=lf
+*.csv text eol=lf
+*.log text eol=lf
+MANIFEST.in text eol=lf
+
+# Binary / keep untouched
+*.png binary
+*.npz binary
+*.whl binary
+*.gz binary

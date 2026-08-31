@@ -143,7 +143,8 @@ TestPyPI may lack some dependencies; you may need `--extra-index-url https://pyp
 ## Immutability and failures
 
 - PyPI versions are **immutable**. Never republish `X.Y.Z` with different files.
-- If a bug ships after publish, release a newer version (for example `X.Y.Z+1`).
+- If a bug ships after publish, release a newer patch version
+  (for example `0.2.1` after `0.2.0`).
 - If the workflow fails **before** upload, fix and re-run / recreate the release as appropriate.
 - If a release is fundamentally broken, prefer **yanking** on PyPI over pretending the version never existed.
 

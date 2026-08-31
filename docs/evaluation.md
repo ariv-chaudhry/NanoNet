@@ -21,9 +21,13 @@ locally to regenerate values for your hardware.
 
 ## Experimental Environment
 
-Representative environment from the recorded runs
-(`results/numerical_parity.json`, `results/runtime_scaling.json`,
-`results/mnist_comparison.json`):
+Recorded benchmark artifacts under `results/` were generated with NanoNet
+**0.1.0** (see each JSON file's `environment` block). Those snapshots remain
+the reference numbers documented below; v0.2.0 did not regenerate them.
+
+Representative environment from
+`results/numerical_parity.json`, `results/runtime_scaling.json`, and
+`results/mnist_comparison.json`:
 
 | Field | Value |
 |-------|-------|
