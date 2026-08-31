@@ -115,7 +115,13 @@ LogDataset(
 - One kept logical line → one dataset sample.
 - Newline terminators (`\n`, `\r\n`) are removed; other whitespace on nonblank
   lines is preserved.
-- Parsing is **lazy**: the parser runs in `__getitem__`, not at construction.
+- **File loading vs semantic parsing:** `LogDataset` reads and indexes the source
+  file when the dataset is constructed (lines are retained for indexing). The
+  user-provided parser is **not** run during construction; it is applied lazily
+  when individual records are accessed via `__getitem__`.
+- The current implementation is intended for files that reasonably fit in
+  memory. Streaming or byte-offset-backed access may be introduced in a future
+  version.
 - Blank lines are **kept** by default (`skip_blank_lines=False`).
 - Parser output may be feature-only or supervised `(features, target)`.
 - Parser failures raise `ValueError` with file path, physical line number

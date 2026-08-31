@@ -1217,26 +1217,20 @@ pytest \
 Run Ruff with:
 
 ```bash
-ruff check nanonet_ml tests
+ruff check nanonet_ml tests examples benchmarks
 ```
 
 NanoNet's tests cover areas such as:
 
-* Tensor operations
-* reverse-mode autodiff
-* branching graphs
-* repeated backward calls
-* broadcasting
-* matrix multiplication
-* vector MatMul
-* batched MatMul
-* losses
-* class-label validation
-* optimizers
-* gradient checking
-* model serialization
-* training
-* graph-free evaluation
+* Tensor operations and reverse-mode autodiff
+* neural-network modules, layers, and activations
+* losses and optimizers
+* gradient checking and model serialization
+* training workflows and graph-free evaluation
+* `Dataset` / `TensorDataset` / `DataLoader` behavior
+* `LogDataset` parsing, encodings, blank-line handling, and diagnostics
+* DataLoader batching with log-backed samples
+* end-to-end log anomaly-detection smoke coverage
 
 ---
 

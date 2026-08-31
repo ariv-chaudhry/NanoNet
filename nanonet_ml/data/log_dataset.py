@@ -27,9 +27,12 @@ class LogDataset:
         * One kept logical line corresponds to one dataset record.
         * Newline terminators (``\\n``, ``\\r\\n``) are removed; other whitespace
           on nonblank lines is preserved.
-        * Semantic parsing is lazy: ``parser`` runs only in ``__getitem__``.
-        * Parser failures raise ``ValueError`` with file path, physical line
-          number (1-based), and dataset index, chaining the original exception.
+        * The source file is read and indexed at construction time. The
+          user-provided ``parser`` is applied lazily in ``__getitem__``.
+        * Intended for files that reasonably fit in memory.
+        * Blank lines are preserved by default.
+        * Parser output is unrestricted except by downstream DataLoader compatibility.
+        * Parser failures are reported with source location context.
 
     Example::
 
